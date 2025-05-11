@@ -1,7 +1,7 @@
-# SuperSensor
+# SuperSensor v2.x
 
-SuperSensor is an all-in-one voice, motion, presence, temperature/humidity/
-pressure, and light sensor, built on an ESP32 with ESPHome, and inspired
+The SuperSensor is an all-in-one voice, motion, presence, temperature/humidity/
+air quality, and light sensor, built on an ESP32 with ESPHome, and inspired
 heavily by the EverythingSmartHome Everything Presence One sensor and the
 HomeAssistant "$13 Voice Assistant" project.
 
@@ -17,9 +17,9 @@ it bare if you like the "PCB on a wall" aesthetic.
 
 To Use:
 
-  * Install this ESPHome configuration to a compatible ESP32 devkit (below).
-  * Install the ESP32 and sensors into the custom PCB.
-  * [Optional] 3D Print a custom case (I haven't designed one yet, but contributions welcome).
+  * Install the ESPHome configuration `supersensor-2.x.yaml` to a compatible ESP32 devkit (below).
+  * Install the ESP32 and sensors into the custom PCB (if desired).
+  * [Optional] 3D Print the custom case.
   * Power up the SuperSensor, connect to the WiFi AP, and connect it to your network.
   * Install the SuperSensor somewhere that makes sense.
   * Add/adopt the SuperSensor to HomeAssistant using the automatic name.
@@ -32,42 +32,104 @@ Note: Once programmed, the output LED will flash continuously until connected
       `light.turn_on` block starting on line 38 of the ESPHome configuration
       to disable this functionality.
 
-For more details, please [see my blog post on the SuperSensor project](https://www.boniface.me/the-supersensor/).
+For more details, please [see my first blog post on the SuperSensor project](https://www.boniface.me/the-supersensor/)
+and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0).
+
+**NOTE: For those with v1.x hardware, see [the branch for that code instead](https://github.com/joshuaboniface/supersensor/tree/v1.x).**
+
+## Major Changes from 1.x
+
+1. Replaced the Bosch BME680 with the Sensirion SHT45 and Sensirion SGP30.
+
+   The BME680 proved to be woefully unreliable in my testing. Temperature and humidity were wildly off of what other thermometers/hydrometers
+   would report, including a known issue with self-heating rending the temperature anywhere from 2 to 5(!) degrees Celsius above the actual
+   temperature.
+
+   In addition, the AQ functionality of the sensor was a source of much frustration and I was never able to get it to work reliably, either
+   with the official BSEC library or with my own attempts at self-configuration.
+
+   Thus, this sensor has been  replaced with two Sensirion sensors which in my experience so far have been much more reliable and consistent,
+   and the cost difference is negligible.
+
+2. Replaced the SR602 PIR sensor with the AM312 PIR sensor.
+
+   The SR602 was, in my experience, prone to constant false misfirings even in completely empty rooms. In addition its orientation requirements
+   are awkward (pins on the left or right side). While it's possible I just had a bad batch, this soured me significantly to these sensors,
+   especially after reading many other similar reports around the internet.
+
+   Thus, this sensor has been replaced with the more reliable AM312. While the form factor fo the AM312 leaves a bit to be desired (sticking
+   up by about 1cm more from the board), in the end I found this to be more of a positive than a negative for resposiveness and apperance.
+
+3. Completely redesigned the custom PCB around the above sensor changes, which is now more compact in a 50x55mm almost-square configuration.
+
+4. Significantly cleaned up the ESPHome configuration, to support the above sensors and remove a lot of cruft that was caused by the BME680.
+   This includes a new set of custom AQ calculations based on the SGP30 and SHT45 sensors that, while not necessarily following the full EPA
+   IAQI spec, should still give a reasonable view of the air quality conditions of an interior room and not deviate wildly and nonsensically
+   like the BME680 did. Details of the calculation are provided below.
 
 ## Parts List
 
-* 1x ESP32 devkit (V4 38-pin, slim) [AliExpress (HW-395)](https://www.aliexpress.com/item/1005006019875837.html)
-* 1x INMP441 MEMS microphone [Amazon search](https://www.amazon.ca/s?k=INMP441)
-* 1x BME680 temperature/humidity/pressure/gas sensor (3.3v models); BME280 or BMP280 can be substituted but with reduced functionality (comment/uncomment the appropriate blocks as needed) [AliExpress](https://www.aliexpress.com/item/4000818429803.html)
-* 1x TSL2591 light sensor [AliExpress](https://www.aliexpress.com/item/1005005514391429.html)
-* 1x HLK-LD2410C-P mm-Wave radar sensor [AliExpress (LD2410C-P)](https://www.aliexpress.com/item/1005006000579211.html)
-* 1x SR602 PIR sensor [AliExpress](https://www.aliexpress.com/item/1005001572550300.html)
-* 2x Common-cathode RGB LEDs [Amazon search](https://www.amazon.ca/s?k=5mm+RGB+LED+common+cathode)
-* 1x Resistor for the common-cathode RGB LED @ 3.3v input (~33-1000Ω, depending on desired brightness and LEDs)
-* 1x SuperSensor PCB board (see "board/supersensor.dxf" or "board/supersensor.easyeda.json")
-* 1x 3D Printed case [Optional] 
-* 1x 3D Printed diffuser cover [Optional] 
+|-------|--------------------|----------------------------------|-------|
+| Qty   | Component          | Cost (2025/05 CAD, ex. shipping) | Links |
+|-------|--------------------|----------------------------------|-------|
+| 1     | GY-SGP30           | $5.73                            | [AliExpress](https://www.aliexpress.com/item/1005008473372972.html)  |
+| 1     | GY-SHT45           | $5.67                            | [AliExpress](https://www.aliexpress.com/item/1005008175340220.html)* |
+| 1     | SR602              | $0.81                            | [AliExpress](https://www.aliexpress.com/item/1005001572550300.html)  |
+| 1     | TSL2591            | $4.59                            | [AliExpress](https://www.aliexpress.com/item/1005008619462097.html)  |
+| 1     | HL-LD2510C         | $4.79                            | [AliExpress](https://www.aliexpress.com/item/1005006000579211.html)* |
+| 1     | INMP441            | $2.93                            | [AliExpress](https://www.aliexpress.com/item/1005002902615623.html)  |
+| 1     | ESP32 HW-395       | $6.67                            | [AliExpress](https://www.aliexpress.com/item/1005006019875837.html)* |
+| 2     | RBG LED            | $0.09 ($9.12/100)                | [Amazon](https://www.amazon.ca/dp/B09Y8M2PKS) |
+| 1     | 470Ω resistor      | $0.08 ($7.99/100)                | [Amazon](https://www.amazon.ca/dp/B08MKQX2XT) |
+| 1     | Female pin header† | $1.59 ($15.99/10)                | [Amazon](https://www.amazon.ca/dp/B08CMNRXJ1) |
+| 1     | Custom PCB (JLC)   | $0.69 ($6.89/10)                 | [GitHub](https://github.com/joshuaboniface/supersensor) |
+| 1     | 3D Printed case    | $?.??‡                           | [GitHub](https://github.com/joshuaboniface/supersensor) |
+|-------|--------------------|----------------------------------|-------|
+| TOTAL |                    | $33.64                           |       |
+|-------|--------------------|----------------------------------|-------|
+
+`*` Ensure you select the correct device on the page as it shows multiple options.
+`†` This is optional and only required if you don't want to directly solder the ESP32 to the board, but I recommend it.
+`‡` Providing a price is impossible due to the wide range of possible fillament types and brands, but should be negligible.
 
 ## Configurable Options
 
 There are several UI-configurable options with the SuperSensor to help you
 get the most out of the sensor for your particular use-case.
 
-### Voice Control
+**Note:** Configuration of the LD2410C is excluded here, as it is extensively
+configurable. See [the documentation](https://esphome.io/components/sensor/ld2410.html) for more details on its options.
 
-The SuperSensor's voice functionality can be completely disabled if voice
-support is not desired. This defeats most of the point of the SuperSensor,
-but can be done if desired.
+### Enable Voice Support (switch)
 
-### Gas Ceiling
+If enabled (the default), the SuperSensor's voice functionality including
+wake word will be started. Disabling this defeats most of the point of the
+SuperSensor, but can be done if desired, for instance if you have multiple
+SuperSensors in a single room and only want one to respond to voice commands.
 
-The AQ (air quality) calculation from the BME680 requires a "maximum"/ceiling
-threshold for the gas resistance value in clean air after some operation
-time. The value defaults to 200 kΩ to provide an initial baseline, but
-should be calibrated manually after setup as each sensor is different. See
-the section "Calibrating AQ" below for more details.
+### Enable Presence LED (switch)
 
-### Light Threshold Control
+If enabled (the default), when overall presence is detected, the LEDs will
+glow "white" at 15% power to signal presence.
+
+### Temperature Offset (selector, -7 to +3 @ 0.1)
+
+Allows calibration of the SHT45 temperature sensor with an offset from -7 to +3
+degrees C. Useful if the sensor is misreporting actual ambient tempreatures.
+
+### Humidity Offset (selector, -10 to +10 @ 0.1)
+
+Allows calibration of the SHT45 humidity sensor with an offset from -10 to +10
+percent relative humidity. Useful if the sensor is misreporting actual humidity.
+
+### PIR Hold Time (selector, 0 to +60 @ 5, 0 default)
+
+The SuperSensor uses an AM312 PIR sensor, which has a stock hold time of ~2.5
+seconds. This setting allows increasing that value, with retrigger support, to
+up to 60 seconds, allowing the PIR detection to report for longer. 0 represents
+"as long as the AM312 fires".
+
+### Light Threshold Control (selector, 0 to +200 @ 5, 30 default)
 
 The SuperSensor features a "light presence" binary sensor based on the light
 level reported by the TSL2591 sensor. This control defines the minimum lux
@@ -78,22 +140,7 @@ of say 30 lux: then, while the light is on, "light presence" is detected,
 and when the light is off, "light presence" is cleared. Light presence can
 be used standalone or as part of the integrated occupancy sensor (below).
 
-Valid range is 0 lux (always on) to 200 lux, in 5 lux increments.
-Default value is 30 lux.
-
-### PIR Hold Time
-
-The SuperSensor uses an SR602 PIR sensor, which has a stock hold time of 2.5
-seconds. While this is configurable via a resistor, this is cumbersome.
-Instead, the SuperSensor features a PIR Hold Time control, which allows you
-to set how long you want a PIR trigger to be "held" on. Each new trigger of
-the PIR resets the timer, so as long as a PIR event fires at least this
-often, the "PIR presence" sensor will remain detected.
-
-Valid range is 0 seconds (match PIR) to 60 seconds, in 5 second increments.
-Default value is 15 seconds.
-
-### Integrated Occupancy Sensor
+### Integrated Occupancy Sensor (Selector)
 
 The SuperSensor features a fully integrated "occupancy" sensor, which can be
 configured to provide exactly the sort of occupancy detection you may want
@@ -179,138 +226,72 @@ For clear, no states will clear occupancy; with any detect option, this
 means that occupancy will be detected only once and never clear, which
 is likely not useful.
 
-## Calibrating AQ
+## AQ Details
 
-The Supersensor uses the Bosch BME680 combination temperature, humidity,
-pressure, and gas sensor to provide a wide range of useful information about
-the environmental conditions the sensor is placed in. However, this sensor
-can be tricky to work with.
+The SuperSensor 2.x provides 2 base air quality sensors (numeric), from which
+4 human-readable text sensors are derived.
 
-While it's normally recommended to use the Bosch BSEC library with this
-sensor, in my ~6 month experience I found this library to be far more trouble
-than it was worth. Specifically, it's IAQ measurement is nearly useless, with
-a strong tendency to get stuck in an upward trend constantly "calibrating"
-itself to higher and higher baselines, to the point where nonsensical values
-were being read. After much research into this, I decided to abandon the
-library in version 1.1 and went with a more custom solution.
+The goal of these sensors is to track general comfort and livability in a
+room, not specific contaminants or conditions. Because the SGP30 can only
+track TVOC and eCO2, we do not track particulates, CO, NOx, or CH2O, all
+of which are required for a full EPA (I)AQI score. This means the best
+we can do is approximate (I)AQI roughly, and since a scale of 0-500 based
+on approximations seems pointless, I went with much simpler 1-4/5 scores
+instead. I feel this does a good enough job to be useful for 99% of rooms.
 
-Instead of the BSEC, we use the stock BME680 ESPHome library, along with
-some calculations by thstielow on GitHub in their [IAQ project](https://github.com/thstielow/raspi-bme680-iaq).
-This provided some useful example code and formulae to calculate a useful
-Air Quality (AQ) value instead of the useless Bosch value.
+We also cannot really debate whether the BME680 is actually any more accurate
+in this regard, since their algorithms are proprietary and all that is exposed
+normally is a single resistance value, so in my opinion this is actually
+superior to that sensor anyways with two discrete datapoints (versus one),
+even if it does still seem limited when compared to dedicated AQ sensors.
+And that is to say nothing of the issues with that sensor (constantly climbing
+IAQ values over time, poor calibration, etc.).
 
-However using this method requires some manual calibration of the sensor
-after putting it together but before final use, in order to get a somewhat
-accurate value out of the AQ component. If you don't care about the AQ value,
-you can skip this, but it is recommended to take full advantage of the sensor.
+### Base Numeric Values
 
-As a quick explainer, the code leverages a combination of the "Gas Resistance"
-value provided by the sensor, along with an absolute humidity calculated from
-the temperature and relative humidity of the sensor (included ESPHome sensor),
-along with two values (one configurable, one hard-coded) and several formulae
-to arrive at the resulting AQ value. For full details of the calculation,
-see the repository linked above, which was re-implemented faithfully here.
+#### IAQ Index (1-5)
 
-The first thing to note is that each BME680 sensor is wildly different in
-terms of gas resistance values. In the same air, I had sensors reading values
-that differed by nearly 200,000Ω, which necessitates a human-configurable
-baseline value. Further, the IAQ project recommends determining a linear
-slope value for this, but instead of trying to explain how to calculate this,
-I just went with the default slope value of 0.03 for this first iteration.
+The IAQ index is calculated based on the TVOC and eCO2 values from the SGP30
+sensor, to provide 5 levels of air quality. This corresponds approximately
+to the levels provided by the BME680 (0-50, 50-100, 100-200, 200-300, 300+).
 
-Thus, the main difficulty in getting a useful AQ score is finding the
-"Gas Resistance Ceiling" value. This value is configurable in the
-SuperSensor interface (Web or HomeAssistant), and should be calibrated as
-follows during the initial setup of the supersensor.
+5 is "excellent": the TVOC is <65 ppb and the eCO2 is <600 ppm.
+4 is "good": the TVOC is 65-220 ppb or the eCO2 is 600-800 ppm.
+3 is "moderate": the TVOC is 220-660 ppb or the eCO2 is 800-1200 ppm.
+2 is "poor": the TVOC is 660-2200 ppb or the eCO2 is 1200-2000 ppm.
+1 is "unhealthy": the TVOC is >2200 ppb or the eCO2 is >2000 ppm.
 
-1. Find a known-clean room, for instance a well-ventilated, well-cleaned
-room in your house or similar. It should have fresh air (no stray VOCs) but
-also minimal drafts or outside exposure especially if there is a poor external
-AQ level. This will be your calibration reference room. Ideally, this room
-should be somewhere between 16C and 26C for optimal performance, so air
-conditioning (or a nice spring/fall day) is best.
+#### Room Health Score (1-4)
 
-2. Turn on the SuperSensor in this environment, and connect it to your
-HomeAssistant instance; this will be critical for viewing historical graphs
-during the following steps.
+The Room Health Score is calculated based on the IAQ, temperature, and humidity,
+and is designed to show how "nice" a room is to be in. Generally a 4 is a nice
+place to be, especially for someone with respiratory issues like myself, and lower
+scores indicate more deviations from the norms or poor IAQ.
 
-3. Let the SuperSensor run to "burn in" the gas sensor for at least 3-6 hours,
-or until the value for the Gas Resistance stabilizes. It is best to avoid much
-movement or activity in the selected calibration room to avoid disrupting
-the sensor during this time. It is also best to ensure that the ambient
-temperature changes as little as possible during this time.
+4 is "optimal": IAQ is >= 4 ("excellent" or "good"), temperature is between 18C and 24C, and humidity is between 40% and 60%.
+3 is "fair": One of the above is not true, and IAQ is >= 3 ("moderate").
+2 is "poor": Two of the above are not true, and IAQ is >= 2 ("poor").
+1 is "bad": All of the above are not true or IAQ is 1 ("unhealthy") regardless of other values.
 
-4. Review the resulting graph of Gas Resistance over the burn-in period. You
-can usually ignore the first hour or two as the sensor was burning in, and
-focus instead on the last hour or so.
+Note that IAQ levels hold a major sway over this level, and decreasing IAQ
+scores will push the room score lower regardless of temperature or humidity.
+It is best used together with the individual sensors to determine exactly
+what is wrong with the room.
 
-5. Make note of the highest mean value reached by the sensor during this time.
-This will be your baseline value for calibrating the Gas Resistance Ceiling.
+### Derived Text Sensors
 
-6. Round the value up to the nearest 1000. For example, if the maximum value
-was 195732.1, round this to 196000.0.
+#### VOC Level
 
-7. Find the difference in the temperature of the BME680 temperature sensor
-from 20C, called ΔT below. I found this part by trial-and-error, so this is
-not precise, but as an example if the calibration room is reporting 26C, your
-ΔT value in the next step is 6. If your temperature was below 20C, use 0.
+This reports the VOC level alone, based on the scale under IAQ Index, in textual form ("Excellent, "Good", etc.).
 
-8. Use one of the following formulae to come up with your offset value, which
-depends on the maximum value range found in step 6.
+#### CO2 Level
 
-   * `<100,000`: 200 * ΔT = 0-1200
-   * `100,000-200,000`: 500 * ΔT = 0-3000
-   * `>200,000`: 1000 * ΔT = 0-6000
+This reports the eCO2 level alone, based on the scale under IAQ Index, in textual form ("Excellent, Good", etc.).
 
-Again this value is rough, and might not even really be needed, but helps
-avoid weird issues with AQ values dropping suddenly later as temperature
-and humidity changes.
+#### IAQ Classification
 
-9. Add your offset value from step 8 to the rounded maximum from step 6.
-For example, 196000.0 with a ΔT of 5C (25C ambient) yields 201000.0
+This reports the IAQ Index in textual form ("Excellent", "Good", etc.).
 
-10. Divide the result from 9 by 1000 to give a number from 1-500. This
-is the value to enter as the "Gas Resistance Ceiling (kΩ)" for this
-sensor. This value will be saved in the NV-RAM of the ESP32 and preserved
-on reboots.
+#### Room Health
 
-At this point, you should have a value that results in the "BME680 AQ"
-sensor reporting 100% AQ, i.e. clean air. You can now test to ensure
-that the value will correctly drop as VOCs are added.
-
-1. Take a Sharpie permanent marker, Acetone nail polish remover, or some
-other VOC that the BME680 gas sensor can detect, and place it near the
-sensor. For example with a sharpie, remove the cap and place the tip
-about 1-2cm from the sensor, or place a small capful of nail polish
-remover about 3-5cm from the sensor.
-
-2. Wait about 30 seconds.
-
-3. You should see the AQ value drop precipitously, into the order of 50%
-or lower, and ideally closer to 0-20%. If the value remains higher than
-50% with this test, your calculated Gas Resistance Ceiling might be
-too low, and should be increased in increments of 1000.
-
-4. Remove the VOC source (replace the cap, remove the capful of remover,
-etc.) and wait about 30-60 minutes.
-
-5. You should see the AQ value and gas resistance return to their original
-values. If it is significantly lower than before, even after waiting 60+
-minutes, restart the calculation from step 5 in the previous section
-using this new value as the baseline.
-
-At this point, the sensor should be calibrated enough for day-to-day
-casual home use, and will tell you if there is any significant
-VOC contamination in the air by dropping the AQ value from 100% to some
-lower value representing the approximate decrease in air quality. Since
-the sensor also factors in the absolute humidity (and via that, the
-ambient temperature) into the AQ calculation, high humidity will also
-drop the value, as this too impacts the air quality. Hopefully this
-is useful for your purposes.
-
-If you find that the AQ value still doesn't represent known reality,
-you can also tweak the in-code value for `ph_slope` on line 522, as
-it's possible your sensor differs significantly here. As mentioned
-above this is still a work in progress to determine for myself, so
-future versions may alter this or include calibration of this value
-automatically, depending on how things go in my testing.
+This reports the Room Health Score in textual form ("Optimal", "Fair", "Poor", "Bad").
