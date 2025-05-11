@@ -363,14 +363,12 @@ interval:
             App.safe_reboot();
           }
 
-# Add optional microWakeWord support (on-device wake word)
-# Doesn't work well as of 2024-07-04 so leave disabled
-#micro_wake_word:
-#  model: hey_jarvis
-#  on_wake_word_detected:
-#    then:
-#      - voice_assistant.start:
-#          wake_word: !lambda return wake_word;
+micro_wake_word:
+  model: hey_jarvis
+  on_wake_word_detected:
+    then:
+      - voice_assistant.start:
+          wake_word: !lambda return wake_word;
 
 # Include the Espressif Audio Development Framework for VAD support
 esp_adf:
@@ -561,7 +559,7 @@ sensor:
       if (tvoc > 2200 || eco2 > 2000) return 1; // Unhealthy
       if (tvoc > 660 || eco2 > 1200) return 2; // Poor
       if (tvoc > 220 || eco2 > 800) return 3; // Moderate
-      if (tvoc > 65) return 4; // Good
+      if (tvoc > 65 || eco2 > 600) return 4; // Good
       return 5; // Excellent
     update_interval: 15s
 
@@ -573,13 +571,25 @@ sensor:
       float temp = id(sht45_temperature).state;
       float rh = id(sht45_humidity).state;
       int iaq = id(iaq_index).state;
+      
       bool temp_ok = (temp >= 18 && temp <= 24);
       bool hum_ok = (rh >= 40 && rh <= 60);
-      bool aq_ok = (iaq >= 4);
-      if (temp_ok && hum_ok && aq_ok) return 4; // Optimal
-      if ((temp_ok && hum_ok) || (temp_ok && aq_ok) || (hum_ok && aq_ok)) return 3; // Good
-      if (temp_ok || hum_ok || aq_ok) return 2; // Fair
-      return 1; // Poor
+      bool iaq_ok = (iaq >= 4);
+      
+      int conditions_met = 0;
+      if (temp_ok) conditions_met++;
+      if (hum_ok) conditions_met++;
+      if (iaq_ok) conditions_met++;
+      
+      if (iaq_ok && temp_ok && hum_ok) {
+        return 4; // Optimal: All conditions met and IAQ is excellent/good
+      } else if (iaq >= 3 && conditions_met >= 2) {
+        return 3; // Fair: IAQ is moderate and at least 2 conditions met
+      } else if (iaq >= 2 && conditions_met >= 1) {
+        return 2; // Poor: IAQ is poor and at least 1 condition met
+      } else {
+        return 1; // Bad: All conditions failed or IAQ is unhealthy
+      }
     update_interval: 15s
 
   - platform: tsl2591
@@ -1084,7 +1094,7 @@ text_sensor:
     lambda: |-
       int score = id(room_health).state;
       if (score == 4) return {"Optimal"};
-      if (score == 3) return {"Good"};
-      if (score == 2) return {"Fair"};
-      return {"Poor"};
+      if (score == 3) return {"Fair"};
+      if (score == 2) return {"Poor"};
+      return {"Bad"};
     update_interval: 15s
