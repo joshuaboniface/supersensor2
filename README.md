@@ -1,7 +1,7 @@
 # SuperSensor v2.x
 
-The SuperSensor is an all-in-one voice, motion, presence, temperature/humidity/
-air quality, and light sensor, built on an ESP32 with ESPHome, and inspired
+The SuperSensor is an all-in-one voice, motion, presence, temperature/humidity/air
+quality, and light sensor, built on an ESP32 with ESPHome, and inspired
 heavily by the EverythingSmartHome Everything Presence One sensor and the
 HomeAssistant "$13 Voice Assistant" project.
 
@@ -17,7 +17,7 @@ it bare if you like the "PCB on a wall" aesthetic.
 
 To Use:
 
-  * Install the ESPHome configuration `supersensor-2.x.yaml` to a compatible ESP32 devkit (below).
+  * Install the ESPHome configuration `supersensor.yaml` to a compatible ESP32 devkit (below).
   * Install the ESP32 and sensors into the custom PCB (if desired).
   * [Optional] 3D Print the custom case.
   * Power up the SuperSensor, connect to the WiFi AP, and connect it to your network.
