@@ -69,7 +69,6 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 
 ## Parts List
 
-|-------|--------------------|----------------------------------|-------|
 | Qty   | Component          | Cost (2025/05 CAD, ex. shipping) | Links |
 |-------|--------------------|----------------------------------|-------|
 | 1     | GY-SGP30           | $5.73                            | [AliExpress](https://www.aliexpress.com/item/1005008473372972.html)  |
@@ -84,12 +83,12 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 | 1     | Female pin header† | $1.59 ($15.99/10)                | [Amazon](https://www.amazon.ca/dp/B08CMNRXJ1) |
 | 1     | Custom PCB (JLC)   | $0.69 ($6.89/10)                 | [GitHub](https://github.com/joshuaboniface/supersensor) |
 | 1     | 3D Printed case    | $?.??‡                           | [GitHub](https://github.com/joshuaboniface/supersensor) |
-|-------|--------------------|----------------------------------|-------|
-| TOTAL |                    | $33.64                           |       |
-|-------|--------------------|----------------------------------|-------|
+| **TOTAL** |                    | **$33.64**                           |       |
 
 `*` Ensure you select the correct device on the page as it shows multiple options.
+
 `†` This is optional and only required if you don't want to directly solder the ESP32 to the board, but I recommend it.
+
 `‡` Providing a price is impossible due to the wide range of possible fillament types and brands, but should be negligible.
 
 ## Configurable Options
