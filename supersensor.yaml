@@ -492,13 +492,13 @@ light:
 output:
   - platform: ledc
     id: rgb_r
-    pin: GPIO32
+    pin: GPIO23
   - platform: ledc
     id: rgb_g
-    pin: GPIO33
+    pin: GPIO22
   - platform: ledc
     id: rgb_b
-    pin: GPIO25
+    pin: GPIO21
 
 ld2410:
   id: ld2410_radar
@@ -691,7 +691,7 @@ binary_sensor:
   - platform: gpio
     name: "PIR GPIO"
     id: pir_gpio
-    pin: GPIO13
+    pin: GPIO32
     internal: false
     device_class: motion
     on_press:
