@@ -364,7 +364,8 @@ interval:
           }
 
 micro_wake_word:
-  model: hey_jarvis
+  models:
+    - model: hey_jarvis
   on_wake_word_detected:
     then:
       - voice_assistant.start:
