@@ -514,6 +514,12 @@ sensor:
       name: "SGP30 TVOC"
       id: sgp30_tvoc
       accuracy_decimals: 1
+    eco2_baseline:
+      name: "SGP30 Baseline eCO2"
+      id: sgp30_baseline_ec02
+    tvoc_baseline:
+      name: "SGP30 Baseline TVOC"
+      id: sgp30_baseline_tvoc
     compensation:
       temperature_source: sht45_temperature
       humidity_source: sht45_humidity
