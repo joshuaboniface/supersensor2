@@ -514,6 +514,9 @@ sensor:
       name: "SGP30 TVOC"
       id: sgp30_tvoc
       accuracy_decimals: 1
+    compensation:
+      temperature_source: sht45_temperature
+      humidity_source: sht45_humidity
     store_baseline: yes
     update_interval: 15s
 
