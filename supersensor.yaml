@@ -560,7 +560,7 @@ sensor:
       if (tvoc > 2200 || eco2 > 2000) return 1; // Unhealthy
       if (tvoc > 660 || eco2 > 1200) return 2; // Poor
       if (tvoc > 220 || eco2 > 800) return 3; // Moderate
-      if (tvoc > 65 || eco2 > 600) return 4; // Good
+      if (tvoc > 65 || eco2 > 500) return 4; // Good
       return 5; // Excellent
     update_interval: 15s
 
@@ -1071,6 +1071,7 @@ text_sensor:
     name: "CO2 Level"
     lambda: |-
       int eco2 = id(sgp30_eco2).state;
+      if (eco2 < 500) return {"Excellent"};
       if (eco2 < 800) return {"Good"};
       if (eco2 < 1200) return {"Moderate"};
       if (eco2 < 2000) return {"Poor"};
