@@ -1064,6 +1064,22 @@ select:
       name: "LD2410C Distance Resolution"
 
 text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "WiFi IP Address"
+    ssid:
+      name: "WiFi SSID"
+    bssid:
+      name: "WiFi BSSID"
+    mac_address:
+      name: "WiFi MAC Address"
+
+  - platform: ld2410
+    version:
+      name: "LD2410C Firmware Version"
+    mac_address:
+      name: "LD2410C MAC Address"
+
   # VOC Level
   - platform: template
     name: "VOC Level"
