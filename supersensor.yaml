@@ -74,10 +74,11 @@ esp32:
       CONFIG_OPTIMIZATION_LEVEL_RELEASE: "y"
 
 globals:
+  # Defaults to -5 due to heating from the ESP
   - id: temperature_offset
     type: float
     restore_value: true
-    initial_value: "0.0"
+    initial_value: "-5.0"
 
   - id: humidity_offset
     type: float
@@ -832,13 +833,11 @@ switch:
 number:
   # Temperature offset:
   # A calibration from -10 to +5 for the temperature sensor
-  # Defaults to -4 due to heating from the ESP
   - platform: template
     name: "Temperature Offset"
     id: temperature_offset_setter
     min_value: -10
     max_value: 5
-    default: -4
     step: 0.1
     lambda: |-
       return id(temperature_offset);
