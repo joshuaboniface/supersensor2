@@ -35,7 +35,7 @@ Note: Once programmed, the output LED will flash continuously until connected
 For more details, please [see my first blog post on the SuperSensor project](https://www.boniface.me/the-supersensor/)
 and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0).
 
-**NOTE: For those with v1.x hardware, see [the branch for that code instead](https://github.com/joshuaboniface/supersensor/tree/v1.x).**
+**NOTE: For those with v1.x hardware, see [the repository for that code instead](https://github.com/joshuaboniface/supersensor).**
 
 ## Major Changes from 1.x
 
