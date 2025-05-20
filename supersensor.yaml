@@ -510,10 +510,18 @@ sensor:
       name: "SGP30 eCO2"
       id: sgp30_eco2
       accuracy_decimals: 1
+      filters:
+        - sliding_window_moving_average:
+            window_size: 20
+            send_every: 1
     tvoc:
       name: "SGP30 TVOC"
       id: sgp30_tvoc
       accuracy_decimals: 1
+      filters:
+        - sliding_window_moving_average:
+            window_size: 20
+            send_every: 1
     eco2_baseline:
       name: "SGP30 Baseline eCO2"
       id: sgp30_baseline_ec02
@@ -533,12 +541,18 @@ sensor:
       accuracy_decimals: 1
       filters:
         - offset: !lambda return id(temperature_offset);
+        - sliding_window_moving_average:
+            window_size: 20
+            send_every: 1
     humidity:
       name: "SHT45 Relative Humidity"
       id: sht45_humidity
       accuracy_decimals: 1
       filters:
         - offset: !lambda return id(humidity_offset);
+        - sliding_window_moving_average:
+            window_size: 20
+            send_every: 1
     heater_max_duty: 0.0
     update_interval: 15s
 
@@ -817,12 +831,14 @@ switch:
 
 number:
   # Temperature offset:
-  # A calibration from -7 to +3 for the temperature sensor
+  # A calibration from -10 to +5 for the temperature sensor
+  # Defaults to -4 due to heating from the ESP
   - platform: template
     name: "Temperature Offset"
     id: temperature_offset_setter
-    min_value: -7
-    max_value: 3
+    min_value: -10
+    max_value: 5
+    default: -4
     step: 0.1
     lambda: |-
       return id(temperature_offset);
