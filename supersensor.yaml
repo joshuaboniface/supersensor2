@@ -530,11 +530,13 @@ sensor:
     temperature:
       name: "SHT45 Temperature"
       id: sht45_temperature
+      accuracy_decimals: 1
       filters:
         - offset: !lambda return id(temperature_offset);
     humidity:
       name: "SHT45 Relative Humidity"
       id: sht45_humidity
+      accuracy_decimals: 1
       filters:
         - offset: !lambda return id(humidity_offset);
     heater_max_duty: 0.0
