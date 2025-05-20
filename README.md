@@ -41,14 +41,12 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 
 1. Replaced the Bosch BME680 with the Sensirion SHT45 and Sensirion SGP30.
 
-   The BME680 proved to be woefully unreliable in my testing. Temperature and humidity were wildly off of what other thermometers/hydrometers
-   would report, including a known issue with self-heating rending the temperature anywhere from 2 to 5(!) degrees Celsius above the actual
-   temperature.
+   The BME680 proved to be woefully unreliable in my testing. Temperature was fairly accurate (internal heating and offset notwithstanding),
+   but humidity was wildly off of what other thermometers/hydrometers would report. In addition, the AQ functionality of the sensor was a
+   source of much frustration and I was never able to get it to work reliably, either with the official BSEC library or with my own attempts
+   at self-configuration.
 
-   In addition, the AQ functionality of the sensor was a source of much frustration and I was never able to get it to work reliably, either
-   with the official BSEC library or with my own attempts at self-configuration.
-
-   Thus, this sensor has been  replaced with two Sensirion sensors which in my experience so far have been much more reliable and consistent,
+   Thus, this sensor has been replaced with two Sensirion sensors which in my experience so far have been much more reliable and consistent,
    and the cost difference is negligible.
 
 2. Replaced the SR602 PIR sensor with the AM312 PIR sensor.
