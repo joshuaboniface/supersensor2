@@ -537,6 +537,7 @@ sensor:
       id: sht45_humidity
       filters:
         - offset: !lambda return id(humidity_offset);
+    heater_max_duty: 0.0
     update_interval: 15s
 
   - platform: absolute_humidity
