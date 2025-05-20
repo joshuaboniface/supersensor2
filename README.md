@@ -111,10 +111,12 @@ Supersensors in a single room and only want one to respond to voice commands.
 If enabled (the default), when overall presence is detected, the LEDs will
 glow "white" at 15% power to signal presence.
 
-### Temperature Offset (selector, -7 to +3 @ 0.1)
+### Temperature Offset (selector, -10 to +5 @ 0.1, -5 default)
 
-Allows calibration of the SHT45 temperature sensor with an offset from -7 to +3
-degrees C. Useful if the sensor is misreporting actual ambient tempreatures.
+Allows calibration of the SHT45 temperature sensor with an offset from -10 to +5
+degrees C. Useful if the sensor is misreporting actual ambient tempreatures. Due
+to internal heating of the SHT45 by the ESP32, this defaults to -5; further
+calibration may be needed for your sensors and environment.
 
 ### Humidity Offset (selector, -10 to +10 @ 0.1)
 
