@@ -676,16 +676,6 @@ sensor:
     entity_category: diagnostic
 
   - platform: template
-    name: "ESP32 CPU Frequency"
-    icon: mdi:cpu-32-bit
-    accuracy_decimals: 1
-    unit_of_measurement: MHz
-    update_interval: 5s
-    lambda: |-
-      return ets_get_cpu_frequency();
-    entity_category: diagnostic
-
-  - platform: template
     name: "ESP32 Free Memory"
     icon: mdi:memory
     unit_of_measurement: 'kB'
