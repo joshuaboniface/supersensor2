@@ -1,11 +1,11 @@
-# Supersensor v2.x
+# SuperSensor v2.x
 
-The Supersensor is an all-in-one voice, motion, presence, temperature/humidity/air
+The SuperSensor is an all-in-one voice, motion, presence, temperature/humidity/air
 quality, and light sensor, built on an ESP32 with ESPHome, and inspired
 heavily by the EverythingSmartHome Everything Presence One sensor and the
 HomeAssistant "$13 Voice Assistant" project.
 
-Use Supersensors around your house to provide HomeAssistant Voice Assist
+Use SuperSensors around your house to provide HomeAssistant Voice Assist
 interfaces with wake word detection, as well as other sensor detection options
 as you want them.
 
@@ -20,10 +20,10 @@ To Use:
   * Install the ESPHome configuration `supersensor.yaml` to a compatible ESP32 devkit (below).
   * Install the ESP32 and sensors into the custom PCB (if desired).
   * [Optional] 3D Print the custom case.
-  * Power up the Supersensor, connect to the WiFi AP, and connect it to your network.
-  * Install the Supersensor somewhere that makes sense.
-  * Add/adopt the Supersensor to HomeAssistant using the automatic name.
-  * Tune the Supersensor values to your needs.
+  * Power up the SuperSensor, connect to the WiFi AP, and connect it to your network.
+  * Install the SuperSensor somewhere that makes sense.
+  * Add/adopt the SuperSensor to HomeAssistant using the automatic name.
+  * Tune the SuperSensor values to your needs.
 
 Note: Once programmed, the output LED will flash continuously until connected
       to HomeAssistant, and a bit longer to establish if the wake word
@@ -32,7 +32,7 @@ Note: Once programmed, the output LED will flash continuously until connected
       `light.turn_on` block starting on line 38 of the ESPHome configuration
       to disable this functionality.
 
-For more details, please [see my first blog post on the Supersensor project](https://www.boniface.me/the-supersensor/)
+For more details, please [see my first blog post on the SuperSensor project](https://www.boniface.me/the-supersensor/)
 and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0).
 
 **NOTE: For those with v1.x hardware, see [the repository for that code instead](https://github.com/joshuaboniface/supersensor).**
@@ -91,7 +91,7 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 
 ## Configurable Options
 
-There are several UI-configurable options with the Supersensor to help you
+There are several UI-configurable options with the SuperSensor to help you
 get the most out of the sensor for your particular use-case.
 
 **Note:** Configuration of the LD2410C is excluded here, as it is extensively
@@ -99,10 +99,10 @@ configurable. See [the documentation](https://esphome.io/components/sensor/ld241
 
 ### Enable Voice Support (switch)
 
-If enabled (the default), the Supersensor's voice functionality including
+If enabled (the default), the SuperSensor's voice functionality including
 wake word will be started. Disabling this defeats most of the point of the
-Supersensor, but can be done if desired, for instance if you have multiple
-Supersensors in a single room and only want one to respond to voice commands.
+SuperSensor, but can be done if desired, for instance if you have multiple
+SuperSensors in a single room and only want one to respond to voice commands.
 
 ### Enable Presence LED (switch)
 
@@ -123,14 +123,14 @@ percent relative humidity. Useful if the sensor is misreporting actual humidity.
 
 ### PIR Hold Time (selector, 0 to +60 @ 5, 0 default)
 
-The Supersensor uses an AM312 PIR sensor, which has a stock hold time of ~2.5
+The SuperSensor uses an AM312 PIR sensor, which has a stock hold time of ~2.5
 seconds. This setting allows increasing that value, with retrigger support, to
 up to 60 seconds, allowing the PIR detection to report for longer. 0 represents
 "as long as the AM312 fires".
 
 ### Light Threshold Control (selector, 0 to +200 @ 5, 30 default)
 
-The Supersensor features a "light presence" binary sensor based on the light
+The SuperSensor features a "light presence" binary sensor based on the light
 level reported by the TSL2591 sensor. This control defines the minimum lux
 value from the sensor to be considered "presence". For instance, if you have
 a room that is usually dark at 0-5 lux, but illuminated to 100 lux when a
@@ -141,7 +141,7 @@ be used standalone or as part of the integrated occupancy sensor (below).
 
 ### Integrated Occupancy Sensor (Selector)
 
-The Supersensor features a fully integrated "occupancy" sensor, which can be
+The SuperSensor features a fully integrated "occupancy" sensor, which can be
 configured to provide exactly the sort of occupancy detection you may want
 for your room.
 
@@ -227,7 +227,7 @@ is likely not useful.
 
 ## AQ Details
 
-The Supersensor 2.x provides 2 base air quality sensors (numeric), from which
+The SuperSensor 2.x provides 2 base air quality sensors (numeric), from which
 4 human-readable text sensors are derived.
 
 The goal of these sensors is to track general comfort and livability in a
