@@ -586,18 +586,18 @@ sensor:
       return (b * alpha) / (a - alpha);
     update_interval: 15s
 
-  # IAQ Index (1-5, 5=Excellent)
+  # IAQ Index (1-5, 5=Great))
   - platform: template
     name: "IAQ Index"
     id: iaq_index
     lambda: |-
       int tvoc = id(sgp30_tvoc).state;
       int eco2 = id(sgp30_eco2).state;
-      if (tvoc > 2200 || eco2 > 2000) return 1; // Unhealthy
+      if (tvoc > 2200 || eco2 > 2000) return 1; // Bad
       if (tvoc > 660 || eco2 > 1200) return 2; // Poor
-      if (tvoc > 220 || eco2 > 800) return 3; // Moderate
+      if (tvoc > 220 || eco2 > 800) return 3; // Fair
       if (tvoc > 65 || eco2 > 500) return 4; // Good
-      return 5; // Excellent
+      return 5; // Great
     update_interval: 15s
 
   # Room Health Score (1-4, 4=Optimal)
@@ -752,11 +752,11 @@ text_sensor:
     name: "VOC Level"
     lambda: |-
       int tvoc = id(sgp30_tvoc).state;
-      if (tvoc < 65) return {"Excellent"};
+      if (tvoc < 65) return {"Great"};
       if (tvoc < 220) return {"Good"};
-      if (tvoc < 660) return {"Moderate"};
+      if (tvoc < 660) return {"Fair"};
       if (tvoc < 2200) return {"Poor"};
-      return {"Unhealthy"};
+      return {"Bad"};
     update_interval: 15s
 
   # CO2 Level
@@ -764,11 +764,11 @@ text_sensor:
     name: "CO2 Level"
     lambda: |-
       int eco2 = id(sgp30_eco2).state;
-      if (eco2 < 500) return {"Excellent"};
+      if (eco2 < 500) return {"Great"};
       if (eco2 < 800) return {"Good"};
-      if (eco2 < 1200) return {"Moderate"};
+      if (eco2 < 1200) return {"Fair"};
       if (eco2 < 2000) return {"Poor"};
-      return {"Unhealthy"};
+      return {"Bad"};
     update_interval: 15s
 
   # IAQ Classification
@@ -776,11 +776,11 @@ text_sensor:
     name: "IAQ Classification"
     lambda: |-
       int iaq = id(iaq_index).state;
-      if (iaq == 5) return {"Excellent"};
+      if (iaq == 5) return {"Great"};
       if (iaq == 4) return {"Good"};
-      if (iaq == 3) return {"Moderate"};
+      if (iaq == 3) return {"Fair"};
       if (iaq == 2) return {"Poor"};
-      return {"Unhealthy"};
+      return {"Bad"};
     update_interval: 15s
 
   # Room Health

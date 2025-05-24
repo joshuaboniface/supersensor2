@@ -254,11 +254,11 @@ The IAQ index is calculated based on the TVOC and eCO2 values from the SGP30
 sensor, to provide 5 levels of air quality. This corresponds approximately
 to the levels provided by the BME680 (0-50, 50-100, 100-200, 200-300, 300+).
 
-5 is "excellent": the TVOC is <65 ppb and the eCO2 is <600 ppm.
+5 is "great": the TVOC is <65 ppb and the eCO2 is <600 ppm.
 4 is "good": the TVOC is 65-220 ppb or the eCO2 is 600-800 ppm.
-3 is "moderate": the TVOC is 220-660 ppb or the eCO2 is 800-1200 ppm.
+3 is "fair": the TVOC is 220-660 ppb or the eCO2 is 800-1200 ppm.
 2 is "poor": the TVOC is 660-2200 ppb or the eCO2 is 1200-2000 ppm.
-1 is "unhealthy": the TVOC is >2200 ppb or the eCO2 is >2000 ppm.
+1 is "bad": the TVOC is >2200 ppb or the eCO2 is >2000 ppm.
 
 #### Room Health Score (1-4)
 
@@ -267,8 +267,8 @@ and is designed to show how "nice" a room is to be in. Generally a 4 is a nice
 place to be, especially for someone with respiratory issues like myself, and lower
 scores indicate more deviations from the norms or poor IAQ.
 
-4 is "optimal": IAQ is >= 4 ("excellent" or "good"), temperature is between 18C and 24C, and humidity is between 40% and 60%.
-3 is "fair": One of the above is not true, and IAQ is >= 3 ("moderate").
+4 is "optimal": IAQ is >= 4 ("great" or "good"), temperature is between 18C and 24C, and humidity is between 40% and 60%.
+3 is "fair": One of the above is not true, and IAQ is >= 3 ("fair").
 2 is "poor": Two of the above are not true, and IAQ is >= 2 ("poor").
 1 is "bad": All of the above are not true or IAQ is 1 ("unhealthy") regardless of other values.
 
@@ -281,15 +281,15 @@ what is wrong with the room.
 
 #### VOC Level
 
-This reports the VOC level alone, based on the scale under IAQ Index, in textual form ("Excellent, "Good", etc.).
+This reports the VOC level alone, based on the scale under IAQ Index, in textual form ("Great, "Good", etc.).
 
 #### CO2 Level
 
-This reports the eCO2 level alone, based on the scale under IAQ Index, in textual form ("Excellent, Good", etc.).
+This reports the eCO2 level alone, based on the scale under IAQ Index, in textual form ("Great, Good", etc.).
 
 #### IAQ Classification
 
-This reports the IAQ Index in textual form ("Excellent", "Good", etc.).
+This reports the IAQ Index in textual form ("Great", "Good", etc.).
 
 #### Room Health
 
