@@ -39,19 +39,6 @@ esphome:
         - light.turn_on:
             id: output_led
             effect: flash_white
-    - priority: -600
-      then:
-        - wait_until:
-            api.connected:
-        - delay: 5s
-        - if:
-            condition:
-              switch.is_on: enable_voice_support
-            then:
-              - logger.log: "Initializing voice assistant on boot"
-              - switch.turn_off: voice_support_active
-              - delay: 2s
-              - switch.turn_on: voice_support_active
 
 preferences:
   flash_write_interval: 15sec
@@ -267,19 +254,22 @@ logger:
 
 api:
   reboot_timeout: 15min
-  services:
-    - service: restart_voice_assistant
-      then:
-        - logger.log: "Manually restarting voice assistant"
-        - voice_assistant.stop:
-        - delay: 2s
-        - if:
-            condition:
-              switch.is_on: enable_voice_support
-            then:
-              - switch.turn_off: voice_support_active
-              - delay: 1s
-              - switch.turn_on: voice_support_active
+  on_client_connected:
+    - script.execute: light_off
+    - if:
+        condition:
+          - switch.is_on: enable_voice_support
+        then:
+          - micro_wake_word.start:
+  on_client_disconnected:
+    - light.turn_on:
+        id: output_led
+        effect: flash_white
+    - if:
+        condition:
+          - switch.is_on: enable_voice_support
+        then:
+          - micro_wake_word.stop:
 
 ota:
   platform: esphome
@@ -306,44 +296,7 @@ time:
       then:
         - logger.log: "Time synchronized with Home Assistant"
 
-uart:
-  id: ld2410_uart
-  rx_pin: GPIO19
-  tx_pin: GPIO18
-  baud_rate: 256000
-  data_bits: 8
-  stop_bits: 1
-  parity: NONE
-
-i2c:
-  sda: GPIO27
-  scl: GPIO26
-  scan: true
-
-i2s_audio:
-  i2s_lrclk_pin: GPIO17 # WS
-  i2s_bclk_pin: GPIO16  # SCK
-
-microphone:
-  - platform: i2s_audio
-    id: mic
-    adc_type: external
-    i2s_din_pin: GPIO4 # SD
-    pdm: false
-
 interval:
-  - interval: 5s
-    then:
-      - if:
-          condition:
-            and:
-              - switch.is_on: enable_voice_support
-              - switch.is_on: voice_support_active
-              - not: voice_assistant.is_running
-          then:
-            - logger.log: "Voice assistant not running but should be; restarting"
-            - voice_assistant.start_continuous:
-
   # Regular state reporting to HASS
   - interval: 30s
     then:
@@ -363,51 +316,72 @@ interval:
             App.safe_reboot();
           }
 
+uart:
+  id: ld2410_uart
+  rx_pin: GPIO19
+  tx_pin: GPIO18
+  baud_rate: 256000
+  data_bits: 8
+  stop_bits: 1
+  parity: NONE
+
+i2c:
+  sda: GPIO27
+  scl: GPIO26
+  scan: true
+
+i2s_audio:
+  - id: i2s_input
+    i2s_lrclk_pin:
+      number: GPIO17 # WS
+    i2s_bclk_pin:
+      number: GPIO16  # SCK
+
+microphone:
+  - platform: i2s_audio
+    id: mic
+    i2s_audio_id: i2s_input
+    i2s_din_pin: GPIO4 # SD
+    adc_type: external
+    pdm: false
+    channel: left
+
 micro_wake_word:
+  id: mww
+  microphone:
+    microphone: mic
+    gain_factor: 31
+  stop_after_detection: false
   models:
     - model: hey_jarvis
+      id: mww_hey_jarvis
+    - model: hey_mycroft
+      id: mww_hey_mycroft
+    - model: ok_nabu
+      id: mww_okay_nabu
+    - model: alexa
+      id: mww_alexa
+  vad:
   on_wake_word_detected:
-    then:
-      - voice_assistant.start:
-          wake_word: !lambda return wake_word;
+    - logger.log: "A wake word was detected!"
+    - if:
+        condition:
+          voice_assistant.is_running:
+        then:
+          voice_assistant.stop:
+    - voice_assistant.start:
+        wake_word: !lambda return wake_word;
 
 voice_assistant:
+  id: va
   microphone: mic
+  micro_wake_word: mww
   use_wake_word: false
-  noise_suppression_level: 3
-  auto_gain: 31dBFS
-  volume_multiplier: 8.0
-  id: assist
-  on_error:
-    - logger.log: "voice error"
-    - if:
-        condition:
-          and:
-            - switch.is_on: voice_support_active
-            - not: voice_assistant.is_running
-        then:
-          - voice_assistant.start_continuous:
-  on_end:
-    - logger.log: "voice ended"
-    - if:
-        condition:
-          and:
-            - switch.is_on: voice_support_active
-            - not: voice_assistant.is_running
-        then:
-          - voice_assistant.start_continuous:
-  on_client_connected:
-    - light.turn_off:
-        id: output_led
-        transition_length: 2s
-    - script.execute: light_off
-    - lambda: |-
-        id(voice_support_active).publish_state(true);
-  on_client_disconnected:
-    - light.turn_on:
-        id: output_led
-        effect: flash_white
+  noise_suppression_level: 0
+  auto_gain: 31 dbfs
+  volume_multiplier: 8
   on_wake_word_detected:
+    - logger.log: "Wake word detected in VA pipeline"
     - light.turn_on:
         id: output_led
         brightness: 100%
@@ -415,6 +389,7 @@ voice_assistant:
         green: 0
         blue: 1
   on_listening:
+    - logger.log: "Listening for commands"
     - light.turn_on:
         id: output_led
         brightness: 100%
@@ -422,14 +397,13 @@ voice_assistant:
         green: 0
         blue: 1
   on_stt_vad_end:
+    - logger.log: "Processing STT result"
     - light.turn_on:
         id: output_led
         brightness: 75%
         red: 0
         green: 1
-        blue: 1
-  on_stt_end:
-    - script.execute: light_off
+        blue: 1    
   on_tts_start:
     - if:
         condition:
@@ -772,26 +746,9 @@ switch:
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
-      - switch.turn_on: voice_support_active
+      - micro_wake_word.start:
     on_turn_off:
-      - switch.turn_off: voice_support_active
-
-  # Active voice support flag/switch
-  - platform: template
-    name: "Voice Support Active"
-    icon: mdi:account-voice
-    id: voice_support_active
-    optimistic: true
-    restore_mode: ALWAYS_OFF
-    entity_category: config
-    on_turn_on:
-      - lambda: id(assist).set_use_wake_word(true);
-      - voice_assistant.stop:
-      - delay: 1s
-      - voice_assistant.start_continuous:
-    on_turn_off:
-      - voice_assistant.stop:
-      - lambda: id(assist).set_use_wake_word(false);
+      - micro_wake_word.stop:
 
   # Global enable/disable for presence LED
   - platform: template
@@ -934,7 +891,6 @@ number:
         name: "LD2410C Gate8 Still Threshold"
 
 select:
-
   # Occupancy Detect Mode:
   # This selector defines the detection mode for the integrated occupancy sensor. Depending on the
   # selected option, only the given sensor(s) will be used to judge when occupancy begins (i.e.
@@ -1062,6 +1018,39 @@ select:
   - platform: ld2410
     distance_resolution:
       name: "LD2410C Distance Resolution"
+
+  - platform: template
+    name: "Wake word sensitivity"
+    optimistic: true
+    initial_option: Moderately sensitive
+    restore_value: true
+    entity_category: config
+    options:
+      - Slightly sensitive
+      - Moderately sensitive
+      - Very sensitive
+    on_value:
+      # Sets specific wake word probabilities computed for each particular model
+      # Note probability cutoffs are set as a quantized uint8 value, each comment has the corresponding floating point cutoff
+      # False Accepts per Hour values are tested against all units and channels from the Dinner Party Corpus.
+      # These cutoffs apply only to the specific models included in the firmware: okay_nabu@20241226.3, hey_jarvis@v2, hey_mycroft@v2
+      lambda: |-
+        if (x == "Slightly sensitive") {
+          id(mww_jarvis).set_probability_cutoff(247);       // 0.97 -> 0.563 FAPH on DipCo (Manifest's default)
+          id(mww_hey_mycroft).set_probability_cutoff(253);  // 0.99 -> 0.567 FAPH on DipCo
+          id(mww_okay_nabu).set_probability_cutoff(217);    // 0.85 -> 0.000 FAPH on DipCo (Manifest's default)
+          id(mww_alexa).set_probability_cutoff(217);        // 0.85 -> 0.000 FAPH on DipCo (Manifest's default)
+        } else if (x == "Moderately sensitive") {
+          id(mww_hey_jarvis).set_probability_cutoff(235);   // 0.92 -> 0.939 FAPH on DipCo
+          id(mww_hey_mycroft).set_probability_cutoff(242);  // 0.95 -> 1.502 FAPH on DipCo (Manifest's default)
+          id(mww_okay_nabu).set_probability_cutoff(176);    // 0.69 -> 0.376 FAPH on DipCo
+          id(mww_alexa).set_probability_cutoff(176);        // 0.69 -> 0.376 FAPH on DipCo
+        } else if (x == "Very sensitive") {
+          id(mww_hey_jarvis).set_probability_cutoff(212);   // 0.83 -> 1.502 FAPH on DipCo
+          id(mww_hey_mycroft).set_probability_cutoff(237);  // 0.93 -> 1.878 FAPH on DipCo
+          id(mww_okay_nabu).set_probability_cutoff(143);    // 0.56 -> 0.751 FAPH on DipCo
+          id(mww_alexa).set_probability_cutoff(143);        // 0.56 -> 0.751 FAPH on DipCo
+        }
 
 text_sensor:
   - platform: wifi_info
