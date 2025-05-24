@@ -325,6 +325,8 @@ time:
 debug:
   update_interval: 5s
 
+psram:
+
 uart:
   id: ld2410_uart
   rx_pin: GPIO19
@@ -513,8 +515,6 @@ sensor:
   - platform: debug
     free:
       name: "Heap Free"
-    fragmentation:
-      name: "Heap Fragmentation"
     block:
       name: "Heap Max Block"
     loop_time:
