@@ -269,7 +269,7 @@ interval:
           }
 
 logger:
-  level: DEBUG
+  level: WARN
   baud_rate: 115200
 
 api:
@@ -325,11 +325,6 @@ time:
     on_time_sync:
       then:
         - logger.log: "Time synchronized with Home Assistant"
-
-debug:
-  update_interval: 5s
-
-psram:
 
 uart:
   id: ld2410_uart
@@ -516,18 +511,6 @@ sensor:
       return heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024;
     entity_category: diagnostic
 
-  - platform: debug
-    free:
-      name: "Heap Free"
-    block:
-      name: "Heap Max Block"
-    loop_time:
-      name: "Loop Time"
-    psram:
-      name: "Free PSRAM"
-    cpu_frequency:
-      name: "CPU Frequency"
-
   - platform: sgp30
     eco2: 
       name: "SGP30 eCO2"
@@ -565,7 +548,7 @@ sensor:
       filters:
         - offset: !lambda return id(temperature_offset);
         - sliding_window_moving_average:
-            window_size: 20
+            window_size: 4
             send_every: 1
     humidity:
       name: "SHT45 Relative Humidity"
@@ -753,12 +736,6 @@ text_sensor:
       name: "WiFi BSSID"
     mac_address:
       name: "WiFi MAC Address"
-
-  - platform: debug
-    device:
-      name: "Device Info"
-    reset_reason:
-      name: "Reset Reason"
 
   - platform: ld2410
     version:
