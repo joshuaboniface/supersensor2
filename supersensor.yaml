@@ -248,8 +248,28 @@ script:
             id(supersensor_occupancy).publish_state(new_state);
           }
 
+interval:
+  # Regular state reporting to HASS
+  - interval: 30s
+    then:
+      - lambda: |-
+          bool current_state = id(supersensor_occupancy).state;
+          ESP_LOGD("state_reporter", "Republishing occupancy state: %s", current_state ? "true" : "false");
+          id(supersensor_occupancy).publish_state(current_state);
+
+  # API watchdog every 5 minutes
+  - interval: 60s
+    then:
+      - lambda: |-
+          if (api::global_api_server->is_connected()) {
+            id(last_api_connected_time) = millis();
+          } else if (millis() - id(last_api_connected_time) > 300000) {
+            ESP_LOGE("api_watchdog", "API disconnected for too long, rebooting...");
+            App.safe_reboot();
+          }
+
 logger:
-  level: INFO
+  level: DEBUG
   baud_rate: 115200
 
 api:
@@ -302,25 +322,8 @@ time:
       then:
         - logger.log: "Time synchronized with Home Assistant"
 
-interval:
-  # Regular state reporting to HASS
-  - interval: 30s
-    then:
-      - lambda: |-
-          bool current_state = id(supersensor_occupancy).state;
-          ESP_LOGD("state_reporter", "Republishing occupancy state: %s", current_state ? "true" : "false");
-          id(supersensor_occupancy).publish_state(current_state);
-
-  # API watchdog every 5 minutes
-  - interval: 60s
-    then:
-      - lambda: |-
-          if (api::global_api_server->is_connected()) {
-            id(last_api_connected_time) = millis();
-          } else if (millis() - id(last_api_connected_time) > 300000) {
-            ESP_LOGE("api_watchdog", "API disconnected for too long, rebooting...");
-            App.safe_reboot();
-          }
+debug:
+  update_interval: 5s
 
 uart:
   id: ld2410_uart
@@ -477,6 +480,50 @@ ld2410:
   uart_id: ld2410_uart
 
 sensor:
+  - platform: uptime
+    name: "ESP32 Uptime"
+    icon: mdi:clock-alert
+    update_interval: 5s
+    entity_category: diagnostic
+
+  - platform: wifi_signal
+    name: "WiFi RSSI"
+    icon: mdi:wifi-strength-2
+    update_interval: 5s
+    entity_category: diagnostic
+
+  - platform: internal_temperature
+    name: "ESP32 Temperature"
+    icon: mdi:thermometer
+    unit_of_measurement: °C
+    device_class: TEMPERATURE
+    update_interval: 5s
+    entity_category: diagnostic
+
+  - platform: template
+    name: "ESP32 Free Memory"
+    icon: mdi:memory
+    unit_of_measurement: 'kB'
+    state_class: measurement
+    update_interval: 5s
+    lambda: |-
+      return heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024;
+    entity_category: diagnostic
+
+  - platform: debug
+    free:
+      name: "Heap Free"
+    fragmentation:
+      name: "Heap Fragmentation"
+    block:
+      name: "Heap Max Block"
+    loop_time:
+      name: "Loop Time"
+    psram:
+      name: "Free PSRAM"
+    cpu_frequency:
+      name: "CPU Frequency"
+
   - platform: sgp30
     eco2: 
       name: "SGP30 eCO2"
@@ -636,36 +683,6 @@ sensor:
       name: "LD2410C Presence Distance"
       icon: mdi:signal-distance-variant
 
-  - platform: uptime
-    name: "ESP32 Uptime"
-    icon: mdi:clock-alert
-    update_interval: 5s
-    entity_category: diagnostic
-
-  - platform: wifi_signal
-    name: "WiFi RSSI"
-    icon: mdi:wifi-strength-2
-    update_interval: 5s
-    entity_category: diagnostic
-
-  - platform: internal_temperature
-    name: "ESP32 Temperature"
-    icon: mdi:thermometer
-    unit_of_measurement: °C
-    device_class: TEMPERATURE
-    update_interval: 5s
-    entity_category: diagnostic
-
-  - platform: template
-    name: "ESP32 Free Memory"
-    icon: mdi:memory
-    unit_of_measurement: 'kB'
-    state_class: measurement
-    update_interval: 5s
-    lambda: |-
-      return heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024;
-    entity_category: diagnostic
-
 binary_sensor:
   - platform: template
     name: "SuperSensor Occupancy"
@@ -721,6 +738,76 @@ binary_sensor:
       name: "LD2410C Moving Target"
     has_still_target:
       name: "LD2410C Still Target"
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "WiFi IP Address"
+    ssid:
+      name: "WiFi SSID"
+    bssid:
+      name: "WiFi BSSID"
+    mac_address:
+      name: "WiFi MAC Address"
+
+  - platform: debug
+    device:
+      name: "Device Info"
+    reset_reason:
+      name: "Reset Reason"
+
+  - platform: ld2410
+    version:
+      name: "LD2410C Firmware Version"
+    mac_address:
+      name: "LD2410C MAC Address"
+
+  # VOC Level
+  - platform: template
+    name: "VOC Level"
+    lambda: |-
+      int tvoc = id(sgp30_tvoc).state;
+      if (tvoc < 65) return {"Excellent"};
+      if (tvoc < 220) return {"Good"};
+      if (tvoc < 660) return {"Moderate"};
+      if (tvoc < 2200) return {"Poor"};
+      return {"Unhealthy"};
+    update_interval: 15s
+
+  # CO2 Level
+  - platform: template
+    name: "CO2 Level"
+    lambda: |-
+      int eco2 = id(sgp30_eco2).state;
+      if (eco2 < 500) return {"Excellent"};
+      if (eco2 < 800) return {"Good"};
+      if (eco2 < 1200) return {"Moderate"};
+      if (eco2 < 2000) return {"Poor"};
+      return {"Unhealthy"};
+    update_interval: 15s
+
+  # IAQ Classification
+  - platform: template
+    name: "IAQ Classification"
+    lambda: |-
+      int iaq = id(iaq_index).state;
+      if (iaq == 5) return {"Excellent"};
+      if (iaq == 4) return {"Good"};
+      if (iaq == 3) return {"Moderate"};
+      if (iaq == 2) return {"Poor"};
+      return {"Unhealthy"};
+    update_interval: 15s
+
+  # Room Health
+  - platform: template
+    name: "Room Health"
+    lambda: |-
+      int score = id(room_health).state;
+      if (score == 4) return {"Optimal"};
+      if (score == 3) return {"Fair"};
+      if (score == 2) return {"Poor"};
+      return {"Bad"};
+    update_interval: 15s
 
 button:
   - platform: ld2410
@@ -1057,67 +1144,3 @@ select:
           id(mww_okay_nabu).set_probability_cutoff(143);    // 0.56 -> 0.751 FAPH on DipCo
           id(mww_alexa).set_probability_cutoff(143);        // 0.56 -> 0.751 FAPH on DipCo
         }
-
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "WiFi IP Address"
-    ssid:
-      name: "WiFi SSID"
-    bssid:
-      name: "WiFi BSSID"
-    mac_address:
-      name: "WiFi MAC Address"
-
-  - platform: ld2410
-    version:
-      name: "LD2410C Firmware Version"
-    mac_address:
-      name: "LD2410C MAC Address"
-
-  # VOC Level
-  - platform: template
-    name: "VOC Level"
-    lambda: |-
-      int tvoc = id(sgp30_tvoc).state;
-      if (tvoc < 65) return {"Excellent"};
-      if (tvoc < 220) return {"Good"};
-      if (tvoc < 660) return {"Moderate"};
-      if (tvoc < 2200) return {"Poor"};
-      return {"Unhealthy"};
-    update_interval: 15s
-
-  # CO2 Level
-  - platform: template
-    name: "CO2 Level"
-    lambda: |-
-      int eco2 = id(sgp30_eco2).state;
-      if (eco2 < 500) return {"Excellent"};
-      if (eco2 < 800) return {"Good"};
-      if (eco2 < 1200) return {"Moderate"};
-      if (eco2 < 2000) return {"Poor"};
-      return {"Unhealthy"};
-    update_interval: 15s
-
-  # IAQ Classification
-  - platform: template
-    name: "IAQ Classification"
-    lambda: |-
-      int iaq = id(iaq_index).state;
-      if (iaq == 5) return {"Excellent"};
-      if (iaq == 4) return {"Good"};
-      if (iaq == 3) return {"Moderate"};
-      if (iaq == 2) return {"Poor"};
-      return {"Unhealthy"};
-    update_interval: 15s
-
-  # Room Health
-  - platform: template
-    name: "Room Health"
-    lambda: |-
-      int score = id(room_health).state;
-      if (score == 4) return {"Optimal"};
-      if (score == 3) return {"Fair"};
-      if (score == 2) return {"Poor"};
-      return {"Bad"};
-    update_interval: 15s
