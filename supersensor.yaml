@@ -27,6 +27,7 @@ esphome:
   project:
     name: joshuaboniface.supersensor
     version: "2.0"
+  min_version: 2025.5.0
   on_boot:
     - priority: 600
       then:
@@ -51,6 +52,9 @@ esphome:
               - switch.turn_off: voice_support_active
               - delay: 2s
               - switch.turn_on: voice_support_active
+
+preferences:
+  flash_write_interval: 15sec
 
 dashboard_import:
   package_import_url: github://joshuaboniface/supersensor2/supersensor.yaml
@@ -256,9 +260,6 @@ script:
           if (!new_state) {
             id(supersensor_occupancy).publish_state(new_state);
           }
-
-preferences:
-  flash_write_interval: 15sec
 
 logger:
   level: INFO
@@ -698,7 +699,9 @@ binary_sensor:
   - platform: gpio
     name: "PIR GPIO"
     id: pir_gpio
-    pin: GPIO32
+    pin:
+      number: GPIO32
+      mode: INPUT_PULLUP
     internal: false
     device_class: motion
     on_press:
@@ -812,12 +815,12 @@ switch:
 
 number:
   # Temperature offset:
-  # A calibration from -10 to +5 for the temperature sensor
+  # A calibration from -30 to +5 for the temperature sensor
   - platform: template
     name: "Temperature Offset"
     id: temperature_offset_setter
-    min_value: -10
-    max_value: 5
+    min_value: -30
+    max_value: 10
     step: 0.1
     lambda: |-
       return id(temperature_offset);
@@ -828,12 +831,12 @@ number:
             value: !lambda 'return float(x);'
 
   # Humidity offset:
-  # A calibration from -10 to +10 for the humidity sensor
+  # A calibration from -20 to +20 for the humidity sensor
   - platform: template
     name: "Humidity Offset"
     id: humidity_offset_setter
-    min_value: -10
-    max_value: 10
+    min_value: -20
+    max_value: 20
     step: 0.1
     lambda: |-
       return id(humidity_offset);
