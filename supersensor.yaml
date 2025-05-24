@@ -353,13 +353,13 @@ micro_wake_word:
     gain_factor: 31
   stop_after_detection: false
   models:
-    - model: hey_jarvis
+    - model: github://esphome/micro-wake-word-models/models/v2/hey_jarvis.json
       id: mww_hey_jarvis
-    - model: hey_mycroft
+    - model: github://esphome/micro-wake-word-models/models/v2/hey_mycroft.json
       id: mww_hey_mycroft
-    - model: ok_nabu
+    - model: github://esphome/micro-wake-word-models/models/v2/okay_nabu.json
       id: mww_okay_nabu
-    - model: alexa
+    - model: github://esphome/micro-wake-word-models/models/v2/alexa.json
       id: mww_alexa
   vad:
   on_wake_word_detected:
@@ -1036,7 +1036,7 @@ select:
       # These cutoffs apply only to the specific models included in the firmware: okay_nabu@20241226.3, hey_jarvis@v2, hey_mycroft@v2
       lambda: |-
         if (x == "Slightly sensitive") {
-          id(mww_jarvis).set_probability_cutoff(247);       // 0.97 -> 0.563 FAPH on DipCo (Manifest's default)
+          id(mww_hey_jarvis).set_probability_cutoff(247);   // 0.97 -> 0.563 FAPH on DipCo (Manifest's default)
           id(mww_hey_mycroft).set_probability_cutoff(253);  // 0.99 -> 0.567 FAPH on DipCo
           id(mww_okay_nabu).set_probability_cutoff(217);    // 0.85 -> 0.000 FAPH on DipCo (Manifest's default)
           id(mww_alexa).set_probability_cutoff(217);        // 0.85 -> 0.000 FAPH on DipCo (Manifest's default)
