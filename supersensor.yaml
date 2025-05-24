@@ -278,24 +278,26 @@ api:
     - logger.log:
         format: "Client %s (IP %s) connected to API"
         args: ["client_info.c_str()", "client_address.c_str()"]
-    - script.execute: light_off
     - if:
         condition:
           - switch.is_on: enable_voice_support
         then:
           - micro_wake_word.start:
+    - script.execute: light_off
+    - delay: 1s
+    - script.execute: light_off
   on_client_disconnected:
     - logger.log:
         format: "Client %s (IP %s) disconnected from API"
         args: ["client_info.c_str()", "client_address.c_str()"]
-    - light.turn_on:
-        id: output_led
-        effect: flash_white
     - if:
         condition:
           - switch.is_on: enable_voice_support
         then:
           - micro_wake_word.stop:
+    - light.turn_on:
+        id: output_led
+        effect: flash_white
 
 ota:
   platform: esphome
