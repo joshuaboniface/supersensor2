@@ -268,34 +268,6 @@ interval:
             App.safe_reboot();
           }
 
-  # API connectivity check every 5 seconds
-  # Works around bugs in 2025.5.0+ that cause the api on_client_[dis]connect to not work reliably
-  - interval: 5s
-    then:
-      - if:
-          condition:
-            lambda: 'return api::global_api_server->is_connected();'
-          then:
-            - light.turn_off: output_led  # Stop LED flashing when connected
-            - if:
-                condition:
-                  lambda: |-
-                    return id(enable_voice_support).state &&
-                           !id(mww).is_running();
-                then:
-                  - micro_wake_word.start:
-          else:
-            - light.turn_on:
-                id: output_led
-                effect: flash_white
-            - if:
-                condition:
-                  lambda: |-
-                    return id(enable_voice_support).state &&
-                           id(mww).is_running();
-                then:
-                  - micro_wake_word.stop:
-
 logger:
   level: DEBUG
   baud_rate: 115200
