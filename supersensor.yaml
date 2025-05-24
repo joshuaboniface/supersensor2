@@ -392,7 +392,7 @@ voice_assistant:
   microphone: mic
   micro_wake_word: mww
   use_wake_word: false
-  noise_suppression_level: 0
+  noise_suppression_level: 3
   auto_gain: 31 dbfs
   volume_multiplier: 8
   on_wake_word_detected:
