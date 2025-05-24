@@ -36,9 +36,13 @@ esphome:
             id(pir_presence).publish_state(false);
             id(light_presence).publish_state(false);
             id(radar_presence).publish_state(false);
-        - light.turn_on:
-            id: output_led
-            effect: flash_white
+    - priority: -100
+      then:
+        - if:
+            condition:
+              - switch.is_on: enable_voice_support
+            then:
+              - micro_wake_word.start:
 
 preferences:
   flash_write_interval: 15sec
@@ -274,32 +278,32 @@ logger:
 
 api:
   reboot_timeout: 15min
-  on_client_connected:
-    - logger.log:
-        format: "Client %s (IP %s) connected to API"
-        args: ["client_info.c_str()", "client_address.c_str()"]
-    - script.execute: light_off
-    - if:
-        condition:
-          lambda: |-
-            return id(enable_voice_support).state &&
-                   !id(mww).is_running();
-        then:
-          - micro_wake_word.start:
-  on_client_disconnected:
-    - logger.log:
-        format: "Client %s (IP %s) disconnected from API"
-        args: ["client_info.c_str()", "client_address.c_str()"]
-    - if:
-        condition:
-          lambda: |-
-            return id(enable_voice_support).state &&
-                   id(mww).is_running();
-        then:
-          - micro_wake_word.stop:
-    - light.turn_on:
-        id: output_led
-        effect: flash_white
+#  on_client_connected:
+#    - logger.log:
+#        format: "Client %s (IP %s) connected to API"
+#        args: ["client_info.c_str()", "client_address.c_str()"]
+#    - script.execute: light_off
+#    - if:
+#        condition:
+#          lambda: |-
+#            return id(enable_voice_support).state &&
+#                   !id(mww).is_running();
+#        then:
+#          - micro_wake_word.start:
+#  on_client_disconnected:
+#    - logger.log:
+#        format: "Client %s (IP %s) disconnected from API"
+#        args: ["client_info.c_str()", "client_address.c_str()"]
+#    - if:
+#        condition:
+#          lambda: |-
+#            return id(enable_voice_support).state &&
+#                   id(mww).is_running();
+#        then:
+#          - micro_wake_word.stop:
+#    - light.turn_on:
+#        id: output_led
+#        effect: flash_white
 
 ota:
   platform: esphome
@@ -360,7 +364,7 @@ micro_wake_word:
   id: mww
   microphone:
     microphone: mic
-    gain_factor: 31
+    gain_factor: 4
   stop_after_detection: false
   models:
     - model: github://esphome/micro-wake-word-models/models/v2/hey_jarvis.json
@@ -388,7 +392,7 @@ voice_assistant:
   micro_wake_word: mww
   use_wake_word: false
   noise_suppression_level: 3
-  auto_gain: 31 dbfs
+  auto_gain: 4 dbfs
   volume_multiplier: 8
   on_wake_word_detected:
     - logger.log: "Wake word detected in VA pipeline"
@@ -548,7 +552,7 @@ sensor:
       filters:
         - offset: !lambda return id(temperature_offset);
         - sliding_window_moving_average:
-            window_size: 4
+            window_size: 20
             send_every: 1
     humidity:
       name: "SHT45 Relative Humidity"
