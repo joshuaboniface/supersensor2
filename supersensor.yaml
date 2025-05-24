@@ -255,6 +255,9 @@ logger:
 api:
   reboot_timeout: 15min
   on_client_connected:
+    - logger.log:
+        format: "Client %s (IP %s) connected to API"
+        args: ["client_info.c_str()", "client_address.c_str()"]
     - script.execute: light_off
     - if:
         condition:
@@ -262,6 +265,9 @@ api:
         then:
           - micro_wake_word.start:
   on_client_disconnected:
+    - logger.log:
+        format: "Client %s (IP %s) disconnected from API"
+        args: ["client_info.c_str()", "client_address.c_str()"]
     - light.turn_on:
         id: output_led
         effect: flash_white
