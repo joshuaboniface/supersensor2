@@ -276,22 +276,23 @@ interval:
           condition:
             lambda: 'return api::global_api_server->is_connected();'
           then:
+            - light.turn_off: output_led  # Stop LED flashing when connected
             - if:
                 condition:
-                  - switch.is_on: enable_voice_support
-                  - not:
-                      condition:
-                        micro_wake_word.is_running:
+                  lambda: |-
+                    return id(enable_voice_support).state &&
+                           !id(mww).is_running();
                 then:
                   - micro_wake_word.start:
-            - script.execute: light_off
           else:
             - light.turn_on:
                 id: output_led
                 effect: flash_white
             - if:
                 condition:
-                  - switch.is_on: enable_voice_support
+                  lambda: |-
+                    return id(enable_voice_support).state &&
+                           id(mww).is_running();
                 then:
                   - micro_wake_word.stop:
 
@@ -305,27 +306,28 @@ api:
     - logger.log:
         format: "Client %s (IP %s) connected to API"
         args: ["client_info.c_str()", "client_address.c_str()"]
+    - script.execute: light_off
     - if:
         condition:
-          - switch.is_on: enable_voice_support
-          - not:
-              condition:
-                micro_wake_word.is_running:
+          lambda: |-
+            return id(enable_voice_support).state &&
+                   !id(mww).is_running();
         then:
           - micro_wake_word.start:
-    - script.execute: light_off
   on_client_disconnected:
     - logger.log:
         format: "Client %s (IP %s) disconnected from API"
         args: ["client_info.c_str()", "client_address.c_str()"]
+    - if:
+        condition:
+          lambda: |-
+            return id(enable_voice_support).state &&
+                   id(mww).is_running();
+        then:
+          - micro_wake_word.stop:
     - light.turn_on:
         id: output_led
         effect: flash_white
-    - if:
-        condition:
-          - switch.is_on: enable_voice_support
-        then:
-          - micro_wake_word.stop:
 
 ota:
   platform: esphome
