@@ -364,7 +364,7 @@ micro_wake_word:
   id: mww
   microphone:
     microphone: mic
-    gain_factor: 8
+    gain_factor: 4
   stop_after_detection: false
   models:
     - model: github://esphome/micro-wake-word-models/models/v2/hey_jarvis.json
@@ -393,7 +393,7 @@ voice_assistant:
   use_wake_word: false
   noise_suppression_level: 3
   auto_gain: 31 dbfs
-  volume_multiplier: 8
+  volume_multiplier: 4
   on_wake_word_detected:
     - logger.log: "Wake word detected in VA pipeline"
     - light.turn_on:
