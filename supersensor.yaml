@@ -613,7 +613,7 @@ sensor:
       int iaq = id(iaq_index).state;
       
       bool temp_ok = (temp >= 18 && temp <= 24);
-      bool hum_ok = (rh >= 40 && rh <= 60);
+      bool hum_ok = (rh >= 30 && rh <= 70);
       bool iaq_ok = (iaq >= 4);
       
       int conditions_met = 0;
