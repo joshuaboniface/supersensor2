@@ -734,6 +734,10 @@ binary_sensor:
       name: "LD2410C Still Target"
 
 text_sensor:
+  - platform: version
+    name: "ESPHome Version"
+    entity_category: diagnostic
+
   - platform: wifi_info
     ip_address:
       name: "WiFi IP Address"
