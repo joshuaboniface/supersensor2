@@ -103,6 +103,11 @@ globals:
     restore_value: no
     initial_value: "0"
 
+  - id: current_wake_word
+    type: std::string
+    restore_value: yes
+    initial_value: '"mww_computer"'
+
 script:
   - id: light_off
     then:
@@ -378,6 +383,8 @@ micro_wake_word:
     gain_factor: 4
   stop_after_detection: false
   models:
+    - model: github://genehand/Custom_V2_MicroWakeWords/models/computer/computer.json@update-json
+      id: mww_computer
     - model: github://esphome/micro-wake-word-models/models/v2/hey_jarvis.json
       id: mww_hey_jarvis
     - model: github://esphome/micro-wake-word-models/models/v2/hey_mycroft.json
@@ -1120,34 +1127,100 @@ select:
       name: "LD2410C Distance Resolution"
 
   - platform: template
-    name: "Wake word sensitivity"
-    optimistic: true
-    initial_option: Moderately sensitive
-    restore_value: true
-    entity_category: config
+    name: "Wake Word Selector"
+    id: wake_word_selector
     options:
-      - Slightly sensitive
-      - Moderately sensitive
+      - "Computer"
+      - "Hey Jarvis"
+      - "Hey Mycroft"
+      - "Okay Nabu"
+      - "Alexa"
+    initial_option: "Computer"
+    optimistic: true
+    restore_value: true
+    set_action:
+      # Disable models that aren't selected
+      - if:
+          condition:
+            lambda: 'return x != "Computer";'
+          then:
+            - micro_wake_word.disable_model: mww_computer
+      - if:
+          condition:
+            lambda: 'return x != "Hey Jarvis";'
+          then:
+            - micro_wake_word.disable_model: mww_hey_jarvis
+      - if:
+          condition:
+            lambda: 'return x != "Hey Mycroft";'
+          then:
+            - micro_wake_word.disable_model: mww_hey_mycroft
+      - if:
+          condition:
+            lambda: 'return x != "Okay Nabu";'
+          then:
+            - micro_wake_word.disable_model: mww_okay_nabu
+      - if:
+          condition:
+            lambda: 'return x != "Alexa";'
+          then:
+            - micro_wake_word.disable_model: mww_alexa
+      # Enable model we selected
+      - if:
+          condition:
+            lambda: 'return x == "Computer";'
+          then:
+            - micro_wake_word.enable_model: mww_computer
+      - if:
+          condition:
+            lambda: 'return x == "Hey Jarvis";'
+          then:
+            - micro_wake_word.enable_model: mww_hey_jarvis
+      - if:
+          condition:
+            lambda: 'return x == "Hey Mycroft";'
+          then:
+            - micro_wake_word.enable_model: mww_hey_mycroft
+      - if:
+          condition:
+            lambda: 'return x == "Okay Nabu";'
+          then:
+            - micro_wake_word.enable_model: mww_okay_nabu
+      - if:
+          condition:
+            lambda: 'return x == "Alexa";'
+          then:
+            - micro_wake_word.enable_model: mww_alexa
+
+  - platform: template
+    name: "Wake Word Sensitivity"
+    optimistic: true
+    initial_option: Default
+    restore_value: true
+    options:
+      - Default
+      - More sensitive
       - Very sensitive
-    on_value:
+    set_action:
       # Sets specific wake word probabilities computed for each particular model
       # Note probability cutoffs are set as a quantized uint8 value, each comment has the corresponding floating point cutoff
-      # False Accepts per Hour values are tested against all units and channels from the Dinner Party Corpus.
-      # These cutoffs apply only to the specific models included in the firmware: okay_nabu@20241226.3, hey_jarvis@v2, hey_mycroft@v2
-      lambda: |-
-        if (x == "Slightly sensitive") {
-          id(mww_hey_jarvis).set_probability_cutoff(247);   // 0.97 -> 0.563 FAPH on DipCo (Manifest's default)
-          id(mww_hey_mycroft).set_probability_cutoff(253);  // 0.99 -> 0.567 FAPH on DipCo
-          id(mww_okay_nabu).set_probability_cutoff(217);    // 0.85 -> 0.000 FAPH on DipCo (Manifest's default)
-          id(mww_alexa).set_probability_cutoff(217);        // 0.85 -> 0.000 FAPH on DipCo (Manifest's default)
-        } else if (x == "Moderately sensitive") {
-          id(mww_hey_jarvis).set_probability_cutoff(235);   // 0.92 -> 0.939 FAPH on DipCo
-          id(mww_hey_mycroft).set_probability_cutoff(242);  // 0.95 -> 1.502 FAPH on DipCo (Manifest's default)
-          id(mww_okay_nabu).set_probability_cutoff(176);    // 0.69 -> 0.376 FAPH on DipCo
-          id(mww_alexa).set_probability_cutoff(176);        // 0.69 -> 0.376 FAPH on DipCo
-        } else if (x == "Very sensitive") {
-          id(mww_hey_jarvis).set_probability_cutoff(212);   // 0.83 -> 1.502 FAPH on DipCo
-          id(mww_hey_mycroft).set_probability_cutoff(237);  // 0.93 -> 1.878 FAPH on DipCo
-          id(mww_okay_nabu).set_probability_cutoff(143);    // 0.56 -> 0.751 FAPH on DipCo
-          id(mww_alexa).set_probability_cutoff(143);        // 0.56 -> 0.751 FAPH on DipCo
-        }
+      - lambda: |-
+          if (x == "Default") {
+            id(mww_computer).set_probability_cutoff(168);     // 0.66 (default)
+            id(mww_hey_jarvis).set_probability_cutoff(247);   // 0.97 (default)
+            id(mww_hey_mycroft).set_probability_cutoff(242);  // 0.95 (default)
+            id(mww_okay_nabu).set_probability_cutoff(217);    // 0.85 (default)
+            id(mww_alexa).set_probability_cutoff(217);        // 0.85 (default)
+          } else if (x == "More sensitive") {
+            id(mww_computer).set_probability_cutoff(153);     // 0.60
+            id(mww_hey_jarvis).set_probability_cutoff(235);   // 0.92
+            id(mww_hey_mycroft).set_probability_cutoff(237);  // 0.93
+            id(mww_okay_nabu).set_probability_cutoff(176);    // 0.69
+            id(mww_alexa).set_probability_cutoff(176);        // 0.69
+          } else if (x == "Very sensitive") {
+            id(mww_computer).set_probability_cutoff(138);     // 0.54
+            id(mww_hey_jarvis).set_probability_cutoff(212);   // 0.83
+            id(mww_hey_mycroft).set_probability_cutoff(230);  // 0.90
+            id(mww_okay_nabu).set_probability_cutoff(143);    // 0.56
+            id(mww_alexa).set_probability_cutoff(143);        // 0.56
+          }
