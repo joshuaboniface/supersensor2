@@ -346,6 +346,9 @@ time:
       then:
         - logger.log: "Time synchronized with Home Assistant"
 
+debug:
+  update_interval: 15s
+
 uart:
   id: ld2410_uart
   rx_pin: GPIO19
@@ -532,6 +535,16 @@ sensor:
     lambda: |-
       return heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024;
     entity_category: diagnostic
+
+  - platform: debug
+    free:
+      name: "Heap Free"
+    block:
+      name: "Heap Max Block"
+    loop_time:
+      name: "Loop Time"
+    cpu_frequency:
+      name: "CPU Frequency"
 
   - platform: sgp30
     eco2: 
@@ -765,6 +778,12 @@ text_sensor:
       name: "WiFi BSSID"
     mac_address:
       name: "WiFi MAC Address"
+
+  - platform: debug
+    device:
+      name: "Device Info"
+    reset_reason:
+      name: "Reset Reason"
 
   - platform: ld2410
     version:
