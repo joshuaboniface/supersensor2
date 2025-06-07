@@ -551,6 +551,7 @@ sensor:
       name: "SGP30 eCO2"
       id: sgp30_eco2
       accuracy_decimals: 1
+      icon: mdi:molecule-co2
       filters:
         - sliding_window_moving_average:
             window_size: 20
@@ -559,6 +560,7 @@ sensor:
       name: "SGP30 TVOC"
       id: sgp30_tvoc
       accuracy_decimals: 1
+      icon: mdi:molecule
       filters:
         - sliding_window_moving_average:
             window_size: 20
@@ -794,7 +796,7 @@ text_sensor:
   # VOC Level
   - platform: template
     name: "VOC Level"
-    icon: mdi:radiator
+    icon: mdi:molecule
     lambda: |-
       int tvoc = id(sgp30_tvoc).state;
       if (tvoc < 65) return {"Great"};
