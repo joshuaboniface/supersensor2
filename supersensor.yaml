@@ -568,9 +568,11 @@ sensor:
     eco2_baseline:
       name: "SGP30 Baseline eCO2"
       id: sgp30_baseline_ec02
+      icon: mdi:molecule-co2
     tvoc_baseline:
       name: "SGP30 Baseline TVOC"
       id: sgp30_baseline_tvoc
+      icon: mdi:molecule
     compensation:
       temperature_source: sht45_temperature
       humidity_source: sht45_humidity
