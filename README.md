@@ -1,5 +1,8 @@
 # SuperSensor v2.x
 
+**NOTICE**: The Supersensor v2.x is still under development! Parts and configurations
+may change until the design is finalized.
+
 The SuperSensor is an all-in-one voice, motion, presence, temperature/humidity/air
 quality, and light sensor, built on an ESP32 with ESPHome, and inspired
 heavily by the EverythingSmartHome Everything Presence One sensor and the
