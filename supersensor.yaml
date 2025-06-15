@@ -289,7 +289,7 @@ interval:
           }
 
 logger:
-  level: WARN
+  level: DEBUG
   baud_rate: 115200
 
 api:
