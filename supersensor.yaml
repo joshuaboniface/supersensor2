@@ -546,38 +546,65 @@ sensor:
     cpu_frequency:
       name: "CPU Frequency"
 
-  - platform: sgp30
-    eco2: 
-      name: "SGP30 eCO2"
-      id: sgp30_eco2
-      accuracy_decimals: 1
-      icon: mdi:molecule-co2
+  - platform: sgp4x                                                                                                                                                                                                                            
+    voc: 
+      name: "SGP41 VOC Index"
+      id: sgp41_voc_index
+      accuracy_decimals: 0
+      icon: mdi:waves-arrow-up
+      filters:
+        - sliding_window_moving_average:          # We take a reading every 15 seconds, but calculate the sliding
+            window_size: 12                       # average over 12 readings i.e. 60 seconds/1 minute to normalize
+            send_every: 3                         # brief spikes while still sending a value every 15 seconds.
+    nox: 
+      name: "SGP41 NOx Index"
+      id: sgp41_nox_index
+      accuracy_decimals: 0
+      icon: mdi:waves-arrow-up
       filters:
         - sliding_window_moving_average:
-            window_size: 20
-            send_every: 1
-    tvoc:
-      name: "SGP30 TVOC"
-      id: sgp30_tvoc
-      accuracy_decimals: 1
-      icon: mdi:molecule
-      filters:
-        - sliding_window_moving_average:
-            window_size: 20
-            send_every: 1
-    eco2_baseline:
-      name: "SGP30 Baseline eCO2"
-      id: sgp30_baseline_ec02
-      icon: mdi:molecule-co2
-    tvoc_baseline:
-      name: "SGP30 Baseline TVOC"
-      id: sgp30_baseline_tvoc
-      icon: mdi:molecule
+            window_size: 12
+            send_every: 3
     compensation:
       temperature_source: sht45_temperature
       humidity_source: sht45_humidity
-    store_baseline: yes
-    update_interval: 15s
+    store_baseline: true 
+    update_interval: 5s
+     
+  - platform: template
+    name: "SGP41 TVOC (µg/m³)"
+    id: sgp41_tvoc_ugm3
+    icon: mdi:molecule
+    lambda: |-
+      float i = id(sgp41_voc_index).state;
+      if (i < 1) return NAN;
+      float tvoc = (log(501.0 - i) - 6.24) * -878.53;
+      return tvoc;
+    unit_of_measurement: "µg/m³"
+    accuracy_decimals: 0
+     
+  - platform: template
+    name: "SGP41 TVOC (ppb)"
+    id: sgp41_tvoc_ppb
+    icon: mdi:molecule
+    lambda: |-
+      float tvoc_ugm3 = id(sgp41_tvoc_ugm3).state;
+      float tvoc_ppm = tvoc_ugm3 * 0.436;  // ppb estimated using isobutylene MW (56.1 g/mol)
+      return tvoc_ppm;
+    unit_of_measurement: "ppb"
+    accuracy_decimals: 0
+
+  - platform: template        
+    name: "SGP41 eCO2 (appr.)"
+    id: sgp41_eco2_appr       
+    icon: mdi:molecule-co2    
+    lambda: |-                
+      float tvoc_ppb = id(sgp41_tvoc_ppb).state;
+      float eco2_ppm = 400.0 + 1.5 * tvoc_ppb;
+      if (eco2_ppm > 2000) eco2_ppm = 2000;
+      return eco2_ppm;        
+    unit_of_measurement: "ppm"
+    accuracy_decimals: 0   
 
   - platform: sht4x
     temperature:
@@ -620,51 +647,6 @@ sensor:
       float a = 17.27, b = 237.7;
       float alpha = ((a * temp) / (b + temp)) + log(rh / 100.0);
       return (b * alpha) / (a - alpha);
-    update_interval: 15s
-
-  # IAQ Index (1-5, 5=Great))
-  - platform: template
-    name: "IAQ Index"
-    icon: mdi:air-purifier
-    id: iaq_index
-    lambda: |-
-      int tvoc = id(sgp30_tvoc).state;
-      int eco2 = id(sgp30_eco2).state;
-      if (tvoc > 2200 || eco2 > 2000) return 1; // Bad
-      if (tvoc > 660 || eco2 > 1200) return 2; // Poor
-      if (tvoc > 220 || eco2 > 800) return 3; // Fair
-      if (tvoc > 65 || eco2 > 500) return 4; // Good
-      return 5; // Great
-    update_interval: 15s
-
-  # Room Health Score (1-4, 4=Optimal)
-  - platform: template
-    name: "Room Health Score"
-    icon: mdi:home-thermometer
-    id: room_health
-    lambda: |-
-      float temp = id(sht45_temperature).state;
-      float rh = id(sht45_humidity).state;
-      int iaq = id(iaq_index).state;
-      
-      bool temp_ok = (temp >= 18 && temp <= 24);
-      bool hum_ok = (rh >= 30 && rh <= 70);
-      bool iaq_ok = (iaq >= 4);
-      
-      int conditions_met = 0;
-      if (temp_ok) conditions_met++;
-      if (hum_ok) conditions_met++;
-      if (iaq_ok) conditions_met++;
-      
-      if (iaq_ok && temp_ok && hum_ok) {
-        return 4; // Optimal: All conditions met and IAQ is excellent/good
-      } else if (iaq >= 3 && conditions_met >= 2) {
-        return 3; // Fair: IAQ is moderate and at least 2 conditions met
-      } else if (iaq >= 2 && conditions_met >= 1) {
-        return 2; // Poor: IAQ is poor and at least 1 condition met
-      } else {
-        return 1; // Bad: All conditions failed or IAQ is unhealthy
-      }
     update_interval: 15s
 
   - platform: tsl2591
@@ -795,59 +777,6 @@ text_sensor:
     mac_address:
       name: "LD2410C MAC Address"
 
-  # VOC Level
-  - platform: template
-    name: "VOC Level"
-    icon: mdi:molecule
-    lambda: |-
-      int tvoc = id(sgp30_tvoc).state;
-      if (tvoc < 65) return {"Great"};
-      if (tvoc < 220) return {"Good"};
-      if (tvoc < 660) return {"Fair"};
-      if (tvoc < 2200) return {"Poor"};
-      return {"Bad"};
-    update_interval: 15s
-
-  # CO2 Level
-  - platform: template
-    name: "CO2 Level"
-    icon: mdi:molecule-co2
-    lambda: |-
-      int eco2 = id(sgp30_eco2).state;
-      if (eco2 < 500) return {"Great"};
-      if (eco2 < 800) return {"Good"};
-      if (eco2 < 1200) return {"Fair"};
-      if (eco2 < 2000) return {"Poor"};
-      return {"Bad"};
-    update_interval: 15s
-
-  # IAQ Classification
-  - platform: template
-    name: "IAQ Classification"
-    icon: mdi:air-purifier
-    lambda: |-
-      int iaq = id(iaq_index).state;
-      if (iaq == 5) return {"Great"};
-      if (iaq == 4) return {"Good"};
-      if (iaq == 3) return {"Fair"};
-      if (iaq == 2) return {"Poor"};
-      return {"Bad"};
-    update_interval: 15s
-
-  # Room Health
-  - platform: template
-    name: "Room Health"
-    icon: mdi:home-thermometer
-    lambda: |-
-      int score = id(room_health).state;
-      if (score == 4) return {"Optimal"};
-      if (score == 3) return {"Fair"};
-      if (score == 2) return {"Poor"};
-      return {"Bad"};
-    update_interval: 15s
-
-button:
-  - platform: ld2410
     restart:
       name: "LD2410C Restart"
       icon: mdi:power-cycle

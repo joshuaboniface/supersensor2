@@ -42,15 +42,15 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 
 ## Major Changes from 1.x
 
-1. Replaced the Bosch BME680 with the Sensirion SHT45 and Sensirion SGP30.
+1. Replaced the Bosch BME680 with the Sensirion SHT45 and Sensirion SGP41.
 
    The BME680 proved to be woefully unreliable in my testing. Temperature was fairly accurate (internal heating and offset notwithstanding),
    but humidity was wildly off of what other thermometers/hydrometers would report. In addition, the AQ functionality of the sensor was a
    source of much frustration and I was never able to get it to work reliably, either with the official BSEC library or with my own attempts
    at self-configuration.
 
-   Thus, this sensor has been replaced with two Sensirion sensors which in my experience so far have been much more reliable and consistent,
-   and the cost difference is negligible.
+   Thus, this sensor has been replaced with two Sensirion sensors which in my experience so far have been much more reliable and consistent.
+   There is a slight cost increase due to these sensors, but not signfigant enough to outweigh the benefit of reliable monitoring they confer.
 
 2. Replaced the SR602 PIR sensor with the AM312 PIR sensor.
 
@@ -64,15 +64,12 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 3. Completely redesigned the custom PCB around the above sensor changes, which is now more compact in a 50x55mm almost-square configuration.
 
 4. Significantly cleaned up the ESPHome configuration, to support the above sensors and remove a lot of cruft that was caused by the BME680.
-   This includes a new set of custom AQ calculations based on the SGP30 and SHT45 sensors that, while not necessarily following the full EPA
-   IAQI spec, should still give a reasonable view of the air quality conditions of an interior room and not deviate wildly and nonsensically
-   like the BME680 did. Details of the calculation are provided below.
 
 ## Parts List
 
 | Qty   | Component          | Cost (2025/05 CAD, ex. shipping) | Links |
 |-------|--------------------|----------------------------------|-------|
-| 1     | GY-SGP30           | $5.73                            | [AliExpress](https://www.aliexpress.com/item/1005008473372972.html)  |
+| 1     | GY-SGP41           | $11.08                           | [AliExpress](https://www.aliexpress.com/item/1005006746827606.html)  |
 | 1     | GY-SHT45           | $5.67                            | [AliExpress](https://www.aliexpress.com/item/1005008175340220.html)* |
 | 1     | SR602              | $0.81                            | [AliExpress](https://www.aliexpress.com/item/1005001572550300.html)  |
 | 1     | TSL2591            | $4.59                            | [AliExpress](https://www.aliexpress.com/item/1005008619462097.html)  |
@@ -84,7 +81,7 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 | 1     | Female pin header† | $1.59 ($15.99/10)                | [Amazon](https://www.amazon.ca/dp/B08CMNRXJ1) |
 | 1     | Custom PCB (JLC)   | $0.69 ($6.89/10)                 | [GitHub](https://github.com/joshuaboniface/supersensor) |
 | 1     | 3D Printed case    | $?.??‡                           | [GitHub](https://github.com/joshuaboniface/supersensor) |
-| **TOTAL** |                    | **$33.64**                           |       |
+| **TOTAL** |                    | **$38.99**                           |       |
 
 `*` Ensure you select the correct device on the page as it shows multiple options.
 
@@ -112,17 +109,19 @@ SuperSensors in a single room and only want one to respond to voice commands.
 If enabled (the default), when overall presence is detected, the LEDs will
 glow "white" at 15% power to signal presence.
 
-### Temperature Offset (selector, -10 to +5 @ 0.1, -5 default)
+### Temperature Offset (selector, -30 to +10 @ 0.1, -5 default)
 
-Allows calibration of the SHT45 temperature sensor with an offset from -10 to +5
+Allows calibration of the SHT45 temperature sensor with an offset from -30 to +10
 degrees C. Useful if the sensor is misreporting actual ambient tempreatures. Due
 to internal heating of the SHT45 by the ESP32, this defaults to -5; further
-calibration may be needed for your sensors and environment.
+calibration may be needed for your sensors and environment based on an external
+reference.
 
-### Humidity Offset (selector, -10 to +10 @ 0.1)
+### Humidity Offset (selector, -20 to +20 @ 0.1)
 
 Allows calibration of the SHT45 humidity sensor with an offset from -10 to +10
-percent relative humidity. Useful if the sensor is misreporting actual humidity.
+percent relative humidity. Useful if the sensor is misreporting actual humidity
+based on an external reference.
 
 ### PIR Hold Time (selector, 0 to +60 @ 5, 0 default)
 
@@ -230,70 +229,28 @@ is likely not useful.
 
 ## AQ Details
 
-The SuperSensor 2.x provides 2 base air quality sensors (numeric), from which
-4 human-readable text sensors are derived.
+The SuperSensor 2.0 features an SGP41 air quality sensor by Sensirion. This is a powerful AQ
+sensor which powers several commercial devices including the AirGradient One, which gave
+us a lot of our configuration via their sharing of algorithms.
 
-The goal of these sensors is to track general comfort and livability in a
-room, not specific contaminants or conditions. Because the SGP30 can only
-track TVOC and eCO2, we do not track particulates, CO, NOx, or CH2O, all
-of which are required for a full EPA (I)AQI score. This means the best
-we can do is approximate (I)AQI roughly, and since a scale of 0-500 based
-on approximations seems pointless, I went with much simpler 1-4/5 scores
-instead. I feel this does a good enough job to be useful for 99% of rooms.
+The sensor provides two base readings: a VOC Index, and a NOx Index. These values are both
+floating references centered at 100 (VOC) and 1 (NOx), where that value represents "normal"
+air over the previous 24 hours. These sensors are very useful for any sort of quick-change
+automations, e.g. turn on a fan if levels spike due to cooking.
 
-We also cannot really debate whether the BME680 is actually any more accurate
-in this regard, since their algorithms are proprietary and all that is exposed
-normally is a single resistance value, so in my opinion this is actually
-superior to that sensor anyways with two discrete datapoints (versus one),
-even if it does still seem limited when compared to dedicated AQ sensors.
-And that is to say nothing of the issues with that sensor (constantly climbing
-IAQ values over time, poor calibration, etc.).
+In addition, we leverage AirGradient's published forumulas to convert the VOC index into
+actual VOC quantities, in both µg/m³ and ppb. While this may drift due to the sensor's regular
+internal recalibration, I feel that following what AirGradient does is sufficient enough
+for any real-world home usage. Further, we use a very rough conversion of the aforementioned
+VOC quantity into an eCO2 reading, using Isobutylene as a reference gas. These sensors are
+more useful for display purposes, to show the current levels in a room in a dashboard or
+other such place, for human consumption. Note that no such conversions are done for NOx as
+there are no (that I can find) published empirical calculations for this conversion, unlike
+for VOCs via AirGradient.
 
-### Base Numeric Values
-
-#### IAQ Index (1-5)
-
-The IAQ index is calculated based on the TVOC and eCO2 values from the SGP30
-sensor, to provide 5 levels of air quality. This corresponds approximately
-to the levels provided by the BME680 (0-50, 50-100, 100-200, 200-300, 300+).
-
-5 is "great": the TVOC is <65 ppb and the eCO2 is <600 ppm.
-4 is "good": the TVOC is 65-220 ppb or the eCO2 is 600-800 ppm.
-3 is "fair": the TVOC is 220-660 ppb or the eCO2 is 800-1200 ppm.
-2 is "poor": the TVOC is 660-2200 ppb or the eCO2 is 1200-2000 ppm.
-1 is "bad": the TVOC is >2200 ppb or the eCO2 is >2000 ppm.
-
-#### Room Health Score (1-4)
-
-The Room Health Score is calculated based on the IAQ, temperature, and humidity,
-and is designed to show how "nice" a room is to be in. Generally a 4 is a nice
-place to be, especially for someone with respiratory issues like myself, and lower
-scores indicate more deviations from the norms or poor IAQ.
-
-4 is "optimal": IAQ is >= 4 ("great" or "good"), temperature is between 18C and 24C, and humidity is between 40% and 60%.
-3 is "fair": One of the above is not true, and IAQ is >= 3 ("fair").
-2 is "poor": Two of the above are not true, and IAQ is >= 2 ("poor").
-1 is "bad": All of the above are not true or IAQ is 1 ("unhealthy") regardless of other values.
-
-Note that IAQ levels hold a major sway over this level, and decreasing IAQ
-scores will push the room score lower regardless of temperature or humidity.
-It is best used together with the individual sensors to determine exactly
-what is wrong with the room.
-
-### Derived Text Sensors
-
-#### VOC Level
-
-This reports the VOC level alone, based on the scale under IAQ Index, in textual form ("Great, "Good", etc.).
-
-#### CO2 Level
-
-This reports the eCO2 level alone, based on the scale under IAQ Index, in textual form ("Great, Good", etc.).
-
-#### IAQ Classification
-
-This reports the IAQ Index in textual form ("Great", "Good", etc.).
-
-#### Room Health
-
-This reports the Room Health Score in textual form ("Optimal", "Fair", "Poor", "Bad").
+Note however that like all MOx sensors, the SGP41 does not differentiate gasses, and as
+such cannot tell the difference between normal, everyday natural VOCs like those in
+breath or from e.g. ripening fruit, and dangerous VOCs from e.g. construction materials.
+These should be used only as a general indication of air quality over short periods, rather
+than an absolute reference over long periods (much to my own frustration but inevitable
+begruding acceptance).
