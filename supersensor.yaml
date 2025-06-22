@@ -438,7 +438,7 @@ voice_assistant:
         brightness: 75%
         red: 0
         green: 1
-        blue: 1    
+        blue: 1
   on_tts_start:
     - if:
         condition:
@@ -546,8 +546,8 @@ sensor:
     cpu_frequency:
       name: "CPU Frequency"
 
-  - platform: sgp4x                                                                                                                                                                                                                            
-    voc: 
+  - platform: sgp4x
+    voc:
       name: "SGP41 VOC Index"
       id: sgp41_voc_index
       accuracy_decimals: 0
@@ -556,7 +556,7 @@ sensor:
         - sliding_window_moving_average:          # We take a reading every 15 seconds, but calculate the sliding
             window_size: 12                       # average over 12 readings i.e. 60 seconds/1 minute to normalize
             send_every: 3                         # brief spikes while still sending a value every 15 seconds.
-    nox: 
+    nox:
       name: "SGP41 NOx Index"
       id: sgp41_nox_index
       accuracy_decimals: 0
@@ -568,9 +568,9 @@ sensor:
     compensation:
       temperature_source: sht45_temperature
       humidity_source: sht45_humidity
-    store_baseline: true 
+    store_baseline: true
     update_interval: 5s
-     
+
   - platform: template
     name: "SGP41 TVOC (µg/m³)"
     id: sgp41_tvoc_ugm3
@@ -582,7 +582,7 @@ sensor:
       return tvoc;
     unit_of_measurement: "µg/m³"
     accuracy_decimals: 0
-     
+
   - platform: template
     name: "SGP41 TVOC (ppb)"
     id: sgp41_tvoc_ppb
@@ -594,17 +594,17 @@ sensor:
     unit_of_measurement: "ppb"
     accuracy_decimals: 0
 
-  - platform: template        
+  - platform: template
     name: "SGP41 eCO2 (appr.)"
-    id: sgp41_eco2_appr       
-    icon: mdi:molecule-co2    
-    lambda: |-                
+    id: sgp41_eco2_appr
+    icon: mdi:molecule-co2
+    lambda: |-
       float tvoc_ppb = id(sgp41_tvoc_ppb).state;
       float eco2_ppm = 400.0 + 1.5 * tvoc_ppb;
       if (eco2_ppm > 2000) eco2_ppm = 2000;
-      return eco2_ppm;        
+      return eco2_ppm;
     unit_of_measurement: "ppm"
-    accuracy_decimals: 0   
+    accuracy_decimals: 0
 
   - platform: sht4x
     temperature:
@@ -777,6 +777,8 @@ text_sensor:
     mac_address:
       name: "LD2410C MAC Address"
 
+button:
+  - platform: ld2410
     restart:
       name: "LD2410C Restart"
       icon: mdi:power-cycle
