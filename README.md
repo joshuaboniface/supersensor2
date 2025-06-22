@@ -21,8 +21,7 @@ it bare if you like the "PCB on a wall" aesthetic.
 To Use:
 
   * Install the ESPHome configuration `supersensor.yaml` to a compatible ESP32 devkit (below).
-  * Install the ESP32 and sensors into the custom PCB (if desired).
-  * [Optional] 3D Print the custom case.
+  * Install the ESP32 and sensors into the custom PCB.
   * Power up the SuperSensor, connect to the WiFi AP, and connect it to your network.
   * Install the SuperSensor somewhere that makes sense.
   * Add/adopt the SuperSensor to HomeAssistant using the automatic name.
@@ -78,16 +77,59 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
 | 1     | ESP32 HW-395       | $6.67                            | [AliExpress](https://www.aliexpress.com/item/1005006019875837.html)* |
 | 2     | RBG LED            | $0.09 ($9.12/100)                | [Amazon](https://www.amazon.ca/dp/B09Y8M2PKS) |
 | 1     | 470Ω resistor      | $0.08 ($7.99/100)                | [Amazon](https://www.amazon.ca/dp/B08MKQX2XT) |
-| 1     | Female pin header† | $1.59 ($15.99/10)                | [Amazon](https://www.amazon.ca/dp/B08CMNRXJ1) |
+| 2     | Female pin header† | $1.59 ($15.99/10)                | [Amazon](https://www.amazon.ca/dp/B08CMNRXJ1) |
 | 1     | Custom PCB (JLC)   | $0.69 ($6.89/10)                 | [GitHub](https://github.com/joshuaboniface/supersensor) |
-| 1     | 3D Printed case    | $?.??‡                           | [GitHub](https://github.com/joshuaboniface/supersensor) |
-| **TOTAL** |                    | **$38.99**                           |       |
+| **TOTAL** |                    | **$40.58**                           |       |
 
 `*` Ensure you select the correct device on the page as it shows multiple options.
 
-`†` This is optional and only required if you don't want to directly solder the ESP32 to the board, but I recommend it.
+`†` One of these sets is optional, and is useful if you do not want to solder the individual sensors directly to the board (see below).
 
-`‡` Providing a price is impossible due to the wide range of possible fillament types and brands, but should be negligible.
+### To Solder or Not To Solder
+
+Personally, for my Supersensor 1.x's and the initial batch of Supersensor 2.x's, I directly soldered
+all the non-ESP components to the board. This proved to be a major mistake when I later decided
+to switch from SGP30's to SGP41's after some testing and I had to desolder all of them, ruining
+several PCBs in the process. It was also a hassle to desolder the existing sensors for reuse
+during the 1.x to 2.x conversion.
+
+As a result, I actually strongly encourage anyone building one of these units to leverage sockets
+for all components, to allow for quick swapping if any turn out to be defective or if future changes
+are warranted.
+
+Note that due to the PCB design, you *must* socket at least one set of components - either the ESP32
+or the sensors on the front. Due to the positioning and overlap, it would be impossible to solder
+everything directly to the board, as the ESP covers several of the solder points of the front
+sensors and vice versa.
+
+You can use the provided 40-pin female headers exclusively if you wish, and cut them to length for
+the individual sensors as needed, or you can use individually-sized female headers in the following
+quantities should you wish for a slightly neater finish:
+
+* 3x 3-pin (AM302, INMP441 x2)
+* 2x 4-pin (SGP41, SHT45)
+* 1x 5-pin (LD2410C)
+* 1x 6-pin (TSL2591)
+
+I will leave it up to the reader to source these specific sizes if they desire (I found all except
+a 5-pin on Amazon, and just used a 6-pin with one pin removed).
+
+I still directly solder the RGB LEDs and resistor to the board for simplicity as these very small
+leads are not easily socketed, and these components are so inexpensive as to be effectively
+disposable along with the PCB should that be required.
+
+### Part Swaps
+
+To save a little money, it is possible to swap out the two Sensirion sensors for their less-feature-
+rich peers, with no code changes:
+
+* SGP41 -> SGP40 - removes the NOx functionality
+* SHT45 -> SHT40/41/43 - less accuracy
+
+Personally, I do not find the minimal cost savings to be worth sacrificing the extra potential
+functionality, so I recommend using the provided models, but this is up to the builder to decide.
+
+No other parts can be easily swapped without code or PCB design changes.
 
 ## Configurable Options
 
