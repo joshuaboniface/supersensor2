@@ -634,7 +634,6 @@ sensor:
     humidity: sht45_humidity
     id: sht45_absolute_humidity
 
-  # Dew Point
   - platform: template
     name: "SHT45 Dew Point"
     icon: mdi:thermometer-water
@@ -647,6 +646,40 @@ sensor:
       float a = 17.27, b = 237.7;
       float alpha = ((a * temp) / (b + temp)) + log(rh / 100.0);
       return (b * alpha) / (a - alpha);
+    update_interval: 15s
+
+  - platform: template
+    name: "Room Health Score"
+    id: room_health_score
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:home-heart
+    lambda: |-
+      float voc_index = id(sgp41_voc_index).state;
+      float temp = id(sht45_temperature).state;
+      float humidity = id(sht45_humidity).state;
+  
+      // VOC Score (0–100)
+      float voc_score = 0;
+      if (voc_index <= 100) voc_score = 100;
+      else if (voc_index <= 200) voc_score = 80;
+      else if (voc_index <= 300) voc_score = 60;
+      else if (voc_index <= 400) voc_score = 40;
+      else if (voc_index <= 500) voc_score = 50;
+      else voc_score = 0;
+  
+      // Temperature Score (0–100)
+      float temp_score = 100.0 - abs(temp - 23.0) * 10.0;
+      if (temp_score < 0) temp_score = 0;
+  
+      // Humidity Score (0–100), ideal range 35–55%
+      float humidity_score = 100.0 - abs(humidity - 50.0) * 3.0;
+      if (humidity_score < 0) humidity_score = 0;
+  
+      // Weighted average
+      float overall_score = (voc_score * 0.5 + temp_score * 0.25 + humidity_score * 0.25);
+  
+      return round(overall_score);
     update_interval: 15s
 
   - platform: tsl2591
@@ -775,6 +808,34 @@ text_sensor:
       name: "LD2410C Firmware Version"
     mac_address:
       name: "LD2410C MAC Address"
+
+  - platform: template
+    name: "Chemical Pollution"
+    id: sgp41_chemical_pollution
+    icon: mdi:molecule
+    lambda: |-
+      float voc_index = id(sgp41_voc_index).state;
+      if (voc_index < 1 || voc_index > 500) return {"Unknown"};
+      if (voc_index <= 100) return {"Excellent"};
+      else if (voc_index <= 200) return {"Good"};
+      else if (voc_index <= 300) return {"Moderate"};
+      else if (voc_index <= 400) return {"Unhealthy"};
+      else return {"Hazardous"};
+    update_interval: 15s
+
+  - platform: template
+    name: "Room Health"
+    id: room_health_text
+    icon: mdi:home-heart
+    lambda: |-
+      float score = id(room_health_score).state;
+      if (score < 0) return {"Unknown"};
+      else if (score >= 90.0) return {"Great"};
+      else if (score >= 80.0) return {"Good"};
+      else if (score >= 60.0) return {"Fair"};
+      else if (score >= 40.0) return {"Poor"};
+      else return {"Bad"};
+    update_interval: 15s
 
 button:
   - platform: ld2410
