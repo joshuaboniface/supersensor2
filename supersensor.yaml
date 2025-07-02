@@ -652,7 +652,6 @@ sensor:
     name: "Room Health Score"
     id: room_health_score
     unit_of_measurement: "%"
-    accuracy_decimals: 0
     icon: mdi:home-heart
     lambda: |-
       float voc_index = id(sgp41_voc_index).state;
@@ -679,7 +678,7 @@ sensor:
       // Weighted average
       float overall_score = (voc_score * 0.5 + temp_score * 0.25 + humidity_score * 0.25);
   
-      return round(overall_score);
+      return (int) round(overall_score);
     update_interval: 15s
 
   - platform: tsl2591
