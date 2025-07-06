@@ -27,14 +27,7 @@ To Use:
   * Add/adopt the SuperSensor to HomeAssistant using the automatic name.
   * Tune the SuperSensor values to your needs.
 
-Note: Once programmed, the output LED will flash continuously until connected
-      to HomeAssistant, and a bit longer to establish if the wake word
-      functionality is enabled. This is by design, so you know if your sensors
-      are connected or not. If you do not want this, comment out the
-      `light.turn_on` block starting on line 38 of the ESPHome configuration
-      to disable this functionality.
-
-For more details, please [see my first blog post on the SuperSensor project](https://www.boniface.me/the-supersensor/)
+For more details, please [see my first blog post on the original SuperSensor project](https://www.boniface.me/the-supersensor/)
 and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0).
 
 **NOTE: For those with v1.x hardware, see [the repository for that code instead](https://github.com/joshuaboniface/supersensor).**
@@ -142,9 +135,8 @@ configurable. See [the documentation](https://esphome.io/components/sensor/ld241
 ### Enable Voice Support (switch)
 
 If enabled (the default), the SuperSensor's voice functionality including
-wake word will be started. Disabling this defeats most of the point of the
-SuperSensor, but can be done if desired, for instance if you have multiple
-SuperSensors in a single room and only want one to respond to voice commands.
+wake word will be started, or it can be disabled to use the SuperSensor
+purely as a presence/environmental sensor.
 
 ### Enable Presence LED (switch)
 
