@@ -27,8 +27,8 @@ To Use:
   * Add/adopt the SuperSensor to HomeAssistant using the automatic name.
   * Tune the SuperSensor values to your needs.
 
-For more details, please [see my first blog post on the original SuperSensor project](https://www.boniface.me/the-supersensor/)
-and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0).
+For more details, please [see my first blog post on the original SuperSensor project](https://www.boniface.me/posts/the-supersensor/)
+and [my update post on version 2.0](https://www.boniface.me/posts/the-supersensor-2.0).
 
 **NOTE: For those with v1.x hardware, see [the repository for that code instead](https://github.com/joshuaboniface/supersensor).**
 
@@ -51,7 +51,7 @@ and [my update post on version 2.0](https://www.boniface.me/the-supersensor-2.0)
    especially after reading many other similar reports around the internet.
 
    Thus, this sensor has been replaced with the more reliable AM312. While the form factor fo the AM312 leaves a bit to be desired (sticking
-   up by about 1cm more from the board), in the end I found this to be more of a positive than a negative for resposiveness and apperance.
+   up by about 1cm more from the board), and in the end this sensor misfires just as much as the SR602, I've committed to the change.
 
 3. Completely redesigned the custom PCB around the above sensor changes, which is now more compact in a 50x55mm almost-square configuration.
 
