@@ -373,6 +373,7 @@ i2s_audio:
   - id: i2s_dummy
     i2s_lrclk_pin:
       number: GPIO15 # WS
+      ignore_strapping_warning: true  # This isn't connected to anything anyways
     i2s_bclk_pin:
       number: GPIO14  # SCK
 
