@@ -771,7 +771,9 @@ binary_sensor:
     id: pir_gpio
     pin:
       number: GPIO32
-      mode: INPUT_PULLDOWN
+      mode:
+        input: true
+        pulldown: true
     internal: false
     device_class: motion
     on_press:
