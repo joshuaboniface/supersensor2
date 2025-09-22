@@ -36,6 +36,14 @@ esphome:
             id(pir_presence).publish_state(false);
             id(light_presence).publish_state(false);
             id(radar_presence).publish_state(false);
+    - priority: 100
+      then:
+        - light.turn_on:
+            id: output_led
+            effect: flash_white
+        - delay: 2s
+        - light.turn_off:
+            id: output_led
     - priority: -100
       then:
         - if:
