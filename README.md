@@ -10,8 +10,8 @@ interfaces with wake word detection, as well as other sensor detection options
 as you want them.
 
 Assist feedback is provided by a pair of common-cathode RGB LED. No speakers
-or annoying TTS feedback here! With an optional 3D Printed case and a clear
-diffuser cover, the LEDs can be turned into a sleek light bar on the bottom
+or annoying TTS feedback here! With [an optional 3D Printed case and a clear
+diffuser cover](/case), the LEDs can be turned into a sleek light bar on the bottom
 of the unit for quick and easy confirmation of voice actions, or just use
 it bare if you like the "PCB on a wall" aesthetic.
 
@@ -43,12 +43,12 @@ and [my update post on version 2.0](https://www.boniface.me/posts/the-supersenso
 
 2. Replaced the SR602 PIR sensor with the AM312 PIR sensor.
 
-   The SR602 was, in my experience, prone to constant false misfirings even in completely empty rooms. In addition its orientation requirements
-   are awkward (pins on the left or right side). While it's possible I just had a bad batch, this soured me significantly to these sensors,
-   especially after reading many other similar reports around the internet.
+   The SR602 was, in my experience, prone to constant false misfirings and hard to enclose due to its shape. In addition its orientation is
+   awkward (pins on the left or right side) which made building around it difficult. Thus, this sensor has been replaced with the nicer,
+   more straight AM312 PIR design. This does add vertical height to the sensor but I consider this a good tradeoff, and think it looks neat.
 
-   Thus, this sensor has been replaced with the more reliable AM312. While the form factor fo the AM312 leaves a bit to be desired (sticking
-   up by about 1cm more from the board), and in the end this sensor misfires just as much as the SR602, I've committed to the change.
+   Note that like all cheap PIRs, the AM312 is prone to misfiring if exposed. For this reason, [the case](/case) is recommended for any serious
+   PIR use-cases.
 
 3. Completely redesigned the custom PCB around the above sensor changes, which is now more compact in a 50x55mm almost-square configuration.
 
@@ -60,7 +60,7 @@ and [my update post on version 2.0](https://www.boniface.me/posts/the-supersenso
 |-------|--------------------|----------------------------------|-------|
 | 1     | GY-SGP41           | $11.08                           | [AliExpress](https://www.aliexpress.com/item/1005006746827606.html)  |
 | 1     | GY-SHT45           | $5.67                            | [AliExpress](https://www.aliexpress.com/item/1005008175340220.html)* |
-| 1     | SR602              | $0.81                            | [AliExpress](https://www.aliexpress.com/item/1005001572550300.html)  |
+| 1     | AM312              | $0.81                            | [AliExpress](https://www.aliexpress.com/item/1005001572550300.html)  |
 | 1     | TSL2591            | $4.59                            | [AliExpress](https://www.aliexpress.com/item/1005008619462097.html)  |
 | 1     | HL-LD2510C         | $4.79                            | [AliExpress](https://www.aliexpress.com/item/1005006000579211.html)* |
 | 1     | INMP441            | $2.93                            | [AliExpress](https://www.aliexpress.com/item/1005002902615623.html)  |
@@ -77,17 +77,14 @@ and [my update post on version 2.0](https://www.boniface.me/posts/the-supersenso
 
 ### To Solder or Not To Solder
 
-Personally, for my Supersensor 1.x's and the initial batch of Supersensor 2.x's, I directly soldered
-all the non-ESP components to the board. This proved to be a major mistake when I later decided
-to switch from SGP30's to SGP41's after some testing and I had to desolder all of them, ruining
-several PCBs in the process. It was also a hassle to desolder the existing sensors for reuse
-during the 1.x to 2.x conversion.
+I strongly encourage anyone building one of these units to leverage sockets for all components. First,
+this provides good spacing between components which can help with general better performance. It can
+also allow for quick swapping if any turn out to be defective or if future changes are warranted.
 
-As a result, I actually strongly encourage anyone building one of these units to leverage sockets
-for all components, to allow for quick swapping if any turn out to be defective or if future changes
-are warranted.
+**If you use the [case](/case), it is sized assuming socketed components!** So for case users you
+must socket all components.
 
-Note that due to the PCB design, you *must* socket at least one set of components - either the ESP32
+Note that due to the PCB design, you *must socket at least one* set of components - either the ESP32
 or the sensors on the front. Due to the positioning and overlap, it would be impossible to solder
 everything directly to the board, as the ESP covers several of the solder points of the front
 sensors and vice versa.
