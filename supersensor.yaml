@@ -129,7 +129,7 @@ script:
         then:
           - light.turn_on:
               id: output_led
-              brightness: 15%
+              brightness: 25%
               red: 1
               green: 1
               blue: 1
@@ -482,7 +482,7 @@ light:
           name: flash_white
           colors:
             - state: true
-              brightness: 15%
+              brightness: 25%
               red: 100%
               green: 90%
               blue: 90%
