@@ -7,6 +7,8 @@ This case provides a convenient way to cover up the SuperSensor's PCB, either
 for aesthetics or to help protect it from harsh environments.
 
 You can [tinker the design on TinkerCAD here](https://www.tinkercad.com/things/1HT3fyNbln0-supersensor-case).
+The case design and images in this folder are licensed under the Creative Commons
+Attribution-ShareAlike (BY-SA) 4.0 license.
 
 ## Printing
 
