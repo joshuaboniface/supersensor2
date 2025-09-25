@@ -60,7 +60,7 @@ and [my update post on version 2.0](https://www.boniface.me/posts/the-supersenso
 |-------|--------------------|----------------------------------|-------|
 | 1     | GY-SGP41           | $11.08                           | [AliExpress](https://www.aliexpress.com/item/1005006746827606.html)  |
 | 1     | GY-SHT45           | $5.67                            | [AliExpress](https://www.aliexpress.com/item/1005008175340220.html)* |
-| 1     | AM312              | $0.81                            | [AliExpress](https://www.aliexpress.com/item/1005001572550300.html)  |
+| 1     | AM312              | $1.97                            | [AliExpress](https://www.aliexpress.com/item/1005008067324301.html)  |
 | 1     | TSL2591            | $4.59                            | [AliExpress](https://www.aliexpress.com/item/1005008619462097.html)  |
 | 1     | HL-LD2510C         | $4.79                            | [AliExpress](https://www.aliexpress.com/item/1005006000579211.html)* |
 | 1     | INMP441            | $2.93                            | [AliExpress](https://www.aliexpress.com/item/1005002902615623.html)  |
@@ -69,7 +69,7 @@ and [my update post on version 2.0](https://www.boniface.me/posts/the-supersenso
 | 1     | 470Ω resistor      | $0.08 ($7.99/100)                | [Amazon](https://www.amazon.ca/dp/B08MKQX2XT) |
 | 2     | Female pin header† | $1.59 ($15.99/10)                | [Amazon](https://www.amazon.ca/dp/B08CMNRXJ1) |
 | 1     | Custom PCB (JLC)   | $0.69 ($6.89/10)                 | [GitHub](https://github.com/joshuaboniface/supersensor) |
-| **TOTAL** |                    | **$40.58**                           |       |
+| **TOTAL** |                    | **$41.74**                           |       |
 
 `*` Ensure you select the correct device on the page as it shows multiple options.
 
