@@ -282,6 +282,7 @@ for VOCs via AirGradient.
 Note however that like all MOx sensors, the SGP41 does not differentiate gasses, and as
 such cannot tell the difference between normal, everyday natural VOCs like those in
 breath or from e.g. ripening fruit, and dangerous VOCs from e.g. construction materials.
+It also reacts strongly to heavy humidity, resulting in higher values in such environments.
 These should be used only as a general indication of air quality over short periods, rather
 than an absolute reference over long periods (much to my own frustration but inevitable
 begruding acceptance).
