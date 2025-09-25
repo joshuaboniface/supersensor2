@@ -73,7 +73,7 @@ To begin, print the parts above as indicated; default slicer settings should be 
 We will exclude the USB cable opening extension for this assembly, but its installation
 is straightforward.
 
-1. Lay out the parts; you will need:
+Lay out the parts; you will need:
 
     * The body, face, insert, and AM312 tube parts.
     * Superglue
@@ -82,81 +82,85 @@ is straightforward.
 
    ![Parts](.images/parts.jpg)
 
-2. Place the face face-down (clips up), and place dabs of superglue at the corners of the
+### Face
+
+1. Place the face face-down (clips up), and place dabs of superglue at the corners of the
    insert openings.
 
    ![Face Assembly 1](.images/face-assembly-1.jpg)
 
-3. Spread the superglue along the inner edges with the toothpick; or, combine 2+3 by using
+2. Spread the superglue along the inner edges with the toothpick; or, combine 2+3 by using
    a precision superglue applicator. You need very little glue here; avoid extra ooze!
 
    ![Face Assembly 2](.images/face-assembly-2.jpg)
 
-4. Firmly place the insert face-down into the hole; the overlap edges should match.
+3. Firmly place the insert face-down into the hole; the overlap edges should match.
 
    ![Face Assembly 3](.images/face-assembly-3.jpg)
 
-5. Apply firm pressure to both sides of the insert with your thumbs, a vice, or another
+4. Apply firm pressure to both sides of the insert with your thumbs, a vice, or another
    pressing object, until the glue can set up (15-30 seconds).
 
    ![Face Assembly 4](.images/face-assembly-4.jpg)
 
-6. Flip over the face; the insert should now be solidly affixed. Clean up any oozing superglue
+5. Flip over the face; the insert should now be solidly affixed. Clean up any oozing superglue
    with a paper towel or lint-free rag.
 
    ![Face Assembly 5](.images/face-assembly-5.jpg)
 
-7. Place a small amount of superglue on your toothpick tip; if using a precision superglue
+6. Place a small amount of superglue on your toothpick tip; if using a precision superglue
    applicator, skip this step.
 
    ![Face Assembly 6](.images/face-assembly-6.jpg)
 
-8. Gently spread the superglue around the circular opening (or apply using a precision superglue
+7. Gently spread the superglue around the circular opening (or apply using a precision superglue
    applicator); you want the bead to be no more than 1mm wide to avoid ooze.
 
    ![Face Assembly 7](.images/face-assembly-7.jpg)
 
-9. Line up the AM312 tube, and firmly press it down to seal. Clean up any oozing superglue
+8. Line up the AM312 tube, and firmly press it down to seal. Clean up any oozing superglue
    with a paper towel or lint-free rag.
 
    ![Assmbly 8](.images/face-assembly-8.jpg)
 
-   You will now have a completed face assembly and are ready to install the actual SuperSensor.
+You will now have a completed face assembly and are ready to install the actual SuperSensor.
 
-   ![Completed Face](.images/completed-face.jpg)
+![Completed Face](.images/completed-face.jpg)
 
-10. Gently insert the SuperSensor board into the case body, lining it up with the four standoffs.
+### Body
+
+1. Gently insert the SuperSensor board into the case body, lining it up with the four standoffs.
     The ESP32 should b firmly sitting on the bottom (it should require no force).
 
    ![Body Assembly 1](.images/body-assembly-1.jpg)
 
-    You can verify that the USB plug is sitting flush on the base.
+   You can verify that the USB plug is sitting flush on the base.
 
    ![Body Assembly 2](.images/body-assembly-2.jpg)
 
-11. Remove the top cap of the AM312.
+2. Remove the top cap of the AM312.
 
-12. Place the face over the AM312.
+3. Place the face over the AM312.
 
    ![Body Assembly 3](.images/body-assembly-3.jpg)
 
-13. Line up the clips on one side (I prefer the left). Then using a gentle squeezing motion, apply
-    pressur eto the sides of the case on the right side while also applying lateral pressure on
-    the face towards the inserted clips. This picture is a one-handed demonstration, applying a
-    squeezing pressure between my thumb and middle finger and a downwards pressure with my index
-    finger to provide force; using two hands is advised.
+4. Line up the clips on one side (I prefer the left). Then using a gentle squeezing motion, apply
+   pressure to the sides of the case on the right side while also applying lateral pressure on
+   the face towards the inserted clips. This picture is a one-handed demonstration, applying a
+   squeezing pressure between my thumb and middle finger and a downwards pressure with my index
+   finger to provide force; using two hands is advised.
 
    ![Body Assembly 4](.images/body-assembly-4.jpg)
 
-14. While doing the previous step, ensure that the 3 sensor holes are lined up with their corresponding sensors.
+5. While doing the previous step, ensure that the 3 sensor holes are lined up with their corresponding sensors.
 
    ![Body Assembly 5](.images/body-assembly-5.jpg)
 
-15. Press the face into the body so that all 4 clips are making contact.
+6. Press the face into the body so that all 4 clips are making contact.
 
    ![Body Assembly 6](.images/body-assembly-6.jpg)
 
-16. Reinstall the top cap of the AM312; it should have a snug fit against the tube.
+7. Reinstall the top cap of the AM312; it should have a snug fit against the tube.
 
 You now have an assembled case!
 
@@ -164,3 +168,10 @@ You now have an assembled case!
 
 As a further step, consider placing a line of tape around the face-body joint. The locking clip
 design was made with printing in mind, and does have some play here.
+
+## Installation
+
+You may either mount the SuperSensor by its USB plug (as with a bare board design), or by attaching
+a mounting piece to the case. Enjoy your newly-enclosed SuperSensor with diffused status LEDs!
+
+![Final Installation](.images/final-installation.jpg)
