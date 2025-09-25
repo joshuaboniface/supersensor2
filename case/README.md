@@ -126,11 +126,11 @@ is straightforward.
    ![Completed Face](.images/completed-face.jpg)
 
 10. Gently insert the SuperSensor board into the case body, lining it up with the four standoffs.
-    Gently press down until the ESP32 is firmly sitting on the bottom (it should require no force).
+    The ESP32 should b firmly sitting on the bottom (it should require no force).
 
    ![Body Assembly 1](.images/body-assembly-1.jpg)
 
-   You can verify that the USB plug is sitting flush on the base.
+    You can verify that the USB plug is sitting flush on the base.
 
    ![Body Assembly 2](.images/body-assembly-2.jpg)
 
