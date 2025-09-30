@@ -543,13 +543,13 @@ sensor:
 
   - platform: debug
     free:
-      name: "Heap Free"
+      name: "ESP32 Heap Free"
     block:
-      name: "Heap Max Block"
+      name: "ESP32 Heap Max Block"
     loop_time:
-      name: "Loop Time"
+      name: "ESP32 Loop Time"
     cpu_frequency:
-      name: "CPU Frequency"
+      name: "ESP32 CPU Frequency"
 
   - platform: sgp4x
     voc:
