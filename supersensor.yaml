@@ -89,6 +89,51 @@ globals:
     restore_value: true
     initial_value: "0.0"
 
+  - id: room_health_temperature_min
+    type: float
+    restore_value: true
+    initial_value: "21.0"
+
+  - id: room_health_temperature_max
+    type: float
+    restore_value: true
+    initial_value: "24.0"
+
+  - id: room_health_temperature_penalty
+    type: float
+    restore_value: true
+    initial_value: "10.0"
+
+  - id: room_health_humidity_min
+    type: float
+    restore_value: true
+    initial_value: "40.0"
+
+  - id: room_health_humidity_max
+    type: float
+    restore_value: true
+    initial_value: "60.0"
+
+  - id: room_health_humidity_penalty
+    type: float
+    restore_value: true
+    initial_value: "5.0"
+
+  - id: room_health_voc_weight
+    type: float
+    restore_value: true
+    initial_value: "0.4"
+
+  - id: room_health_temperature_weight
+    type: float
+    restore_value: true
+    initial_value: "0.3"
+
+  - id: room_health_humidity_weight
+    type: float
+    restore_value: true
+    initial_value: "0.3"
+
   - id: pir_hold_time
     type: int
     restore_value: true
@@ -663,29 +708,62 @@ sensor:
     icon: mdi:home-heart
     lambda: |-
       float voc_index = id(sgp41_voc_index).state;
+      if (isnan(voc_index) || voc_index <= 0) {
+        voc_index = 0;
+      }
       float temp = id(sht45_temperature).state;
       float humidity = id(sht45_humidity).state;
-  
-      // VOC Score (0–100)
-      float voc_score = 0;
-      if (voc_index <= 100) voc_score = 100;
-      else if (voc_index <= 200) voc_score = 80;
-      else if (voc_index <= 300) voc_score = 60;
-      else if (voc_index <= 400) voc_score = 40;
-      else if (voc_index <= 500) voc_score = 50;
-      else voc_score = 0;
-  
-      // Temperature Score (0–100)
-      float temp_score = 100.0 - abs(temp - 23.0) * 10.0;
+
+      float temp_min = id(room_health_temperature_min);
+      float temp_max = id(room_health_temperature_max);
+      float temp_penalty = id(room_health_temperature_penalty);
+      float humid_min = id(room_health_humidity_min);
+      float humid_max = id(room_health_humidity_max);
+      float humid_penalty = id(room_health_humidity_penalty);
+      float voc_weight = id(room_health_voc_weight);
+      float temp_weight = id(room_health_temperature_weight);
+      float humid_weight = id(room_health_humidity_weight);
+
+      // VOC score (0–100) mapped to categories from Chemical Pollution levels below
+      float voc_score;
+      if (voc_index <= 200) {
+        voc_score = 100.0;
+      } else if (voc_index <= 400) {
+        // 200–400: 100 → 90
+        voc_score = 100.0 - (voc_index - 200) * (10.0 / 200.0);
+      } else if (voc_index <= 600) {
+        // 400–600: 90 → 70
+        voc_score = 90.0 - (voc_index - 400) * (20.0 / 200.0);
+      } else if (voc_index <= 1500) {
+        // 600–1500: 70 → 40
+        voc_score = 70.0 - (voc_index - 600) * (30.0 / 900.0);
+      } else if (voc_index <= 3000) {
+        // 1500–3000: 40 → 0
+        voc_score = 40.0 - (voc_index - 1500) * (40.0 / 1500.0);
+      } else {
+        voc_score = 0.0;
+      }
+
+      // Temperature score
+      float temp_score = 100;
+      if (temp < temp_min) temp_score = 100 - (temp_min - temp) * temp_penalty;
+      else if (temp > temp_max) temp_score = 100 - (temp - temp_max) * temp_penalty;
       if (temp_score < 0) temp_score = 0;
-  
-      // Humidity Score (0–100), ideal range 35–55%
-      float humidity_score = 100.0 - abs(humidity - 50.0) * 3.0;
+
+      // Humidity score
+      float humidity_score = 100;
+      if (humidity < humid_min) humidity_score = 100 - (humid_min - humidity) * humid_penalty;
+      else if (humidity > humid_max) humidity_score = 100 - (humidity - humid_max) * humid_penalty;
       if (humidity_score < 0) humidity_score = 0;
-  
+
       // Weighted average
-      float overall_score = (voc_score * 0.5 + temp_score * 0.25 + humidity_score * 0.25);
-  
+      float total_weights = voc_weight + temp_weight + humid_weight;
+      if (total_weights <= 0) total_weights = 1.0;
+      voc_weight /= total_weights;
+      temp_weight /= total_weights;
+      humid_weight /= total_weights;
+      float overall_score = (voc_score * voc_weight + temp_score * temp_weight + humidity_score * humid_weight);
+
       return (int) round(overall_score);
     update_interval: 15s
 
@@ -825,10 +903,10 @@ text_sensor:
     lambda: |-
       float voc_index = id(sgp41_voc_index).state;
       if (voc_index < 1 || voc_index > 500) return {"Unknown"};
-      if (voc_index <= 100) return {"Excellent"};
-      else if (voc_index <= 200) return {"Good"};
-      else if (voc_index <= 300) return {"Moderate"};
-      else if (voc_index <= 400) return {"Unhealthy"};
+      if (voc_index <= 200) return {"Excellent"};
+      else if (voc_index <= 400) return {"Good"};
+      else if (voc_index <= 600) return {"Moderate"};
+      else if (voc_index <= 1500) return {"Unhealthy"};
       else return {"Hazardous"};
     update_interval: 15s
 
@@ -839,10 +917,10 @@ text_sensor:
     lambda: |-
       float score = id(room_health_score).state;
       if (score < 0) return {"Unknown"};
-      else if (score >= 90.0) return {"Great"};
-      else if (score >= 80.0) return {"Good"};
-      else if (score >= 60.0) return {"Fair"};
-      else if (score >= 40.0) return {"Poor"};
+      else if (score >= 95.0) return {"Great"};
+      else if (score >= 90.0) return {"Good"};
+      else if (score >= 80.0) return {"Fair"};
+      else if (score >= 60.0) return {"Poor"};
       else return {"Bad"};
     update_interval: 15s
 
@@ -965,6 +1043,154 @@ number:
             id: light_presence_threshold
             value: !lambda 'return int(x);'
 
+  # Room Health Calibration Values
+  # These values allow the user to tweak the values of the room health calculation
+  - platform: template
+    name: "Room Health Min Temperature"
+    id: room_health_temperature_min_setter
+    min_value: 15
+    max_value: 30
+    step: 0.5
+    lambda: |-
+      return id(room_health_temperature_min);
+    set_action:
+      then:
+        - globals.set:
+            id: room_health_temperature_min
+            value: !lambda 'return float(x);'
+  - platform: template
+    name: "Room Health Max Temperature"
+    id: room_health_temperature_max_setter
+    min_value: 15
+    max_value: 30
+    step: 0.5
+    lambda: |-
+      return id(room_health_temperature_max);
+    set_action:
+      then:
+        - globals.set:
+            id: room_health_temperature_max
+            value: !lambda 'return float(x);'
+  - platform: template
+    name: "Room Health Temperature Penalty"
+    id: room_health_temperature_penalty_setter
+    min_value: 1
+    max_value: 20
+    step: 1
+    lambda: |-
+      return int(id(room_health_temperature_penalty));
+    set_action:
+      then:
+        - globals.set:
+            id: room_health_temperature_penalty
+            value: !lambda 'return float(x);'
+  - platform: template
+    name: "Room Health Min Humidity"
+    id: room_health_humidity_min_setter
+    min_value: 20
+    max_value: 80
+    step: 1.0
+    lambda: |-
+      return id(room_health_humidity_min);
+    set_action:
+      then:
+        - globals.set:
+            id: room_health_humidity_min
+            value: !lambda 'return float(x);'
+  - platform: template
+    name: "Room Health Max Humidity"
+    id: room_health_humidity_max_setter
+    min_value: 20
+    max_value: 80
+    step: 1.0
+    lambda: |-
+      return id(room_health_humidity_max);
+    set_action:
+      then:
+        - globals.set:
+            id: room_health_humidity_max
+            value: !lambda 'return float(x);'
+  - platform: template
+    name: "Room Health Humidity Penalty"
+    id: room_health_humidity_penalty_setter
+    min_value: 1
+    max_value: 10
+    step: 1
+    lambda: |-
+      return int(id(room_health_humidity_penalty));
+    set_action:
+      then:
+        - globals.set:
+            id: room_health_humidity_penalty
+            value: !lambda 'return float(x);'
+  - platform: template
+    name: "Room Health VOC Weight"
+    id: room_health_voc_weight_setter
+    min_value: 0.00
+    max_value: 1.00
+    step: 0.01
+    lambda: |-
+      return id(room_health_voc_weight);
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              float total = x + id(room_health_temperature_weight) + id(room_health_humidity_weight);
+              return (total > 0.0) && (total <= 1.0);
+          then:
+            - globals.set:
+                id: room_health_voc_weight
+                value: !lambda 'return float(x);'
+          else:
+            - logger.log:
+                format: "Rejected VOC weight %.2f (total would be out of range: must be > 0.0 and ≤ 1.0)"
+                args: [ 'x' ]
+  - platform: template
+    name: "Room Health Temperature Weight"
+    id: room_health_temperature_weight_setter
+    min_value: 0.00
+    max_value: 1.00
+    step: 0.01
+    lambda: |-
+      return id(room_health_temperature_weight);
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              float total = x + id(room_health_voc_weight) + id(room_health_humidity_weight);
+              return (total > 0.0) && (total <= 1.0);
+          then:
+            - globals.set:
+                id: room_health_temperature_weight
+                value: !lambda 'return float(x);'
+          else:
+            - logger.log:
+                format: "Rejected Temperature weight %.2f (total would be out of range: must be > 0.0 and ≤ 1.0)"
+                args: [ 'x' ]
+  - platform: template
+    name: "Room Health Humitity Weight"
+    id: room_health_humidity_weight_setter
+    min_value: 0.00
+    max_value: 1.00
+    step: 0.01
+    lambda: |-
+      return id(room_health_humidity_weight);
+    set_action:
+      - if:
+          condition:
+            lambda: |-
+              float total = x + id(room_health_temperature_weight) + id(room_health_voc_weight);
+              return (total > 0.0) && (total <= 1.0);
+          then:
+            - globals.set:
+                id: room_health_humidity_weight
+                value: !lambda 'return float(x);'
+          else:
+            - logger.log:
+                format: "Rejected Humidity weight %.2f (total would be out of range: must be > 0.0 and ≤ 1.0)"
+                args: [ 'x' ]
+
+  # LD2410c configuration values
   - platform: ld2410
     timeout:
       name: "LD2410C Timeout"

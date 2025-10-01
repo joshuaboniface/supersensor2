@@ -118,144 +118,7 @@ functionality, so I recommend using the provided models, but this is up to the b
 
 No other parts can be easily swapped without code or PCB design changes.
 
-## Configurable Options
-
-There are several UI-configurable options with the SuperSensor to help you
-get the most out of the sensor for your particular use-case.
-
-**Note:** Configuration of the LD2410C is excluded here, as it is extensively
-configurable. See [the documentation](https://esphome.io/components/sensor/ld2410.html) for more details on its options.
-
-### Enable Voice Support (switch)
-
-If enabled (the default), the SuperSensor's voice functionality including
-wake word will be started, or it can be disabled to use the SuperSensor
-purely as a presence/environmental sensor.
-
-### Enable Presence LED (switch)
-
-If enabled (the default), when overall presence is detected, the LEDs will
-glow "white" at 15% power to signal presence.
-
-### Temperature Offset (selector, -30 to +10 @ 0.1, -5 default)
-
-Allows calibration of the SHT45 temperature sensor with an offset from -30 to +10
-degrees C. Useful if the sensor is misreporting actual ambient tempreatures. Due
-to internal heating of the SHT45 by the ESP32, this defaults to -5; further
-calibration may be needed for your sensors and environment based on an external
-reference.
-
-### Humidity Offset (selector, -20 to +20 @ 0.1)
-
-Allows calibration of the SHT45 humidity sensor with an offset from -10 to +10
-percent relative humidity. Useful if the sensor is misreporting actual humidity
-based on an external reference.
-
-### PIR Hold Time (selector, 0 to +60 @ 5, 0 default)
-
-The SuperSensor uses an AM312 PIR sensor, which has a stock hold time of ~2.5
-seconds. This setting allows increasing that value, with retrigger support, to
-up to 60 seconds, allowing the PIR detection to report for longer. 0 represents
-"as long as the AM312 fires".
-
-### Light Threshold Control (selector, 0 to +200 @ 5, 30 default)
-
-The SuperSensor features a "light presence" binary sensor based on the light
-level reported by the TSL2591 sensor. This control defines the minimum lux
-value from the sensor to be considered "presence". For instance, if you have
-a room that is usually dark at 0-5 lux, but illuminated to 100 lux when a
-(non-automated) light switch is turned on, you could set a threshold here
-of say 30 lux: then, while the light is on, "light presence" is detected,
-and when the light is off, "light presence" is cleared. Light presence can
-be used standalone or as part of the integrated occupancy sensor (below).
-
-### Integrated Occupancy Sensor (Selector)
-
-The SuperSensor features a fully integrated "occupancy" sensor, which can be
-configured to provide exactly the sort of occupancy detection you may want
-for your room.
-
-There are 7 options (plus "None"/disabled), with both "detect" and "clear"
-handled separately:
-
-#### PIR + Radar + Light
-
-Occupancy is detected when all 3 sensors report detected, and occupancy is
-cleared when any of the sensors report cleared.
-
-For detect, this provides the most "safety" against misfires, but requires
-a normally-dark room with a non-automated light source and clear PIR
-detection positioning.
-
-For clear, this option is probably not very useful as it is likely to clear
-quite frequently from the PIR, but is provided for completeness.
-
-#### PIR + Radar
-
-Occupancy is detected when both sensors report detected, and occupancy is
-cleared when either of the sensors report cleared.
-
-For detect, this provides good "safety" against PIR misfires without
-needing a normally-dark room, though detection may be slightly delayed
-from either sensor.
-
-For clear, this option is probably not very useful as it is likely to clear
-quite frequently from the PIR, but is provided for completeness.
-
-#### PIR + Light
-
-Occupancy is detected when both sensors report detected, and occupancy is
-cleared when either of the sensors report cleared.
-
-For detect, this provides some "safety" against PIR misfires, but requires
-a normally-dark room with a non-automated light source and clear PIR
-detection positioning.
-
-For clear, this option is probably not very useful as it is likely to clear
-quite frequently from the PIR, but is provided for completeness.
-
-#### Radar + Light
-
-Occupancy is detected when both sensors report detected, and occupancy is
-cleared when either of the sensors report cleared.
-
-For detect, this allows for radar detection while suppressing occupancy
-without light, for instance in a hallway where one might not want a late
-night bathroom visit to turn on the lights, or something to that effect.
-
-For clear, this option can provide a useful option to clear presence
-quickly if the lights go out, while still providing Radar presence.
-
-#### PIR Only
-
-Occupancy is based entirely on the PIR sensor for both detect and clear.
-
-Prone to misfires, but otherwise a good option for quick detection and
-clearance in a primarily-moving zone (e.g. hallway).
-
-#### Radar Only
-
-Occupancy is based entirely on the Radar sensor for both detect and clear.
-
-Useful for an area with no consistent motion or light level.
-
-#### Light Only
-
-Occupancy is based entirely on the Light sensor for both detect and clear.
-
-Useful for full dependence on an external light source.
-
-#### None
-
-Disable the functionality in either direction.
-
-For detect, no occupancy will ever fire.
-
-For clear, no states will clear occupancy; with any detect option, this
-means that occupancy will be detected only once and never clear, which
-is likely not useful.
-
-## AQ Details
+## Air Quality Handling
 
 The SuperSensor 2.0 features an SGP41 air quality sensor by Sensirion. This is a powerful AQ
 sensor which powers several commercial devices including the AirGradient One, which gave
@@ -283,3 +146,172 @@ It also reacts strongly to heavy humidity, resulting in higher values in such en
 These should be used only as a general indication of air quality over short periods, rather
 than an absolute reference over long periods (much to my own frustration but inevitable
 begruding acceptance).
+
+## Room Health
+
+The SuperSensor 2.0 leverages the outputs of the SHT45 and SGP41 sensors to calculate a
+"Room Health", expressed as a percentage, which represents how "healthy" i.e. comfortable
+a room is for a person to be in.
+
+The room health is calculated based on the VOC level, temperature, and relative humidity.
+First, the raw value is converted to a per-sensor 100-0 scale as follows:
+
+  * For VOC levels, there is a set of linear scales based on common VOC level
+    mappings, such that less than 200 ppb is 100, 200-400 maps to 100-90,
+    400-600 maps to 90-70, 600-1500 maps to 70-40, 1500-3000 maps to 40-0, and
+    greater than 3000 is 0.
+  * For temperature and humidity, there is a single linear scale based on a
+    configurable penalty value, such that a value between the configurable
+    minimum and maximum is 100, and each degree C or %RH outside of that range
+    decreases the value by the penalty value.
+
+Next, each indivdual per-sensor value is applied to the total 100-0 value by a configurable
+weight, with the defaults being 40% to VOC level, 30% to temperature, and 30% to humidity. The
+values can never total more than 100% or total to 0% but are otherwise normalized (i.e. decrease
+others before increasing one, or the values will not be accepted; and at least one weight
+must be >0).
+
+The final result is thus a 100-0% range that, in broad strokes, describes the overall
+health of the room. For some examples, assuming all of the default values below:
+
+   * Perfect: Temp 23C, humidity 50%RH, and VOC level 150ppb = 100% health
+   * A little warm: Temp 25C (+1), humidity 50%RH, and VOC level 250ppb = 97% health
+   * Dry: Temp 22C, humidity 30%RH (-10), VOC level 150ppb = 91% health
+   * Dirty air: Temp 23C, humidity 50%RH, VOC level 800ppb = 85% health
+   * Hot & humid: Temp 28C, humidity 70%RH, VOC level 250ppb = 84% health
+   * All-around bad: Temp 30C, humidity 30%RH, VOC level 2000ppb = 52% health
+
+These are then mapped to textual values as well with the following bands:
+
+   * 100%-95%: Great
+   * 95%-90%: Good
+   * 90%-80%: Fair
+   * 80%-60%: Poor
+   * 60%-0%: Bad
+
+As mentioned above, most portions of this are configurable; see the section below for
+specific details of each configuration value.
+
+## Configurable Options
+
+There are several UI-configurable options with the SuperSensor to help you
+get the most out of the sensor for your particular use-case.
+
+**Note:** Configuration of the LD2410C is excluded here, as it is extensively
+configurable. See [the documentation](https://esphome.io/components/sensor/ld2410.html) for more details on its options.
+
+### Enable Voice Support (switch)
+
+If enabled (the default), the SuperSensor's voice functionality including
+wake word will be started, or it can be disabled to use the SuperSensor
+purely as a presence/environmental sensor.
+
+### Enable Presence LED (switch)
+
+If enabled (the default), when overall presence is detected, the LEDs will
+glow "white" at 15% power to signal presence.
+
+### Temperature Offset (number, -30 to +10 @ 0.1, -5 default)
+
+Allows calibration of the SHT45 temperature sensor with an offset from -30 to +10
+degrees C. Useful if the sensor is misreporting actual ambient tempreatures. Due
+to internal heating of the SHT45 by the ESP32, this defaults to -5; further
+calibration may be needed for your sensors and environment based on an external
+reference.
+
+### Humidity Offset (number, -20 to +20 @ 0.1)
+
+Allows calibration of the SHT45 humidity sensor with an offset from -10 to +10
+percent relative humidity. Useful if the sensor is misreporting actual humidity
+based on an external reference.
+
+### PIR Hold Time (number, 0 to +60 @ 5, 0 default)
+
+The SuperSensor uses an AM312 PIR sensor, which has a stock hold time of ~2.5
+seconds. This setting allows increasing that value, with retrigger support, to
+up to 60 seconds, allowing the PIR detection to report for longer. 0 represents
+"as long as the AM312 fires".
+
+### Light Threshold Control (number, 0 to +200 @ 5, 30 default)
+
+The SuperSensor features a "light presence" binary sensor based on the light
+level reported by the TSL2591 sensor. This control defines the minimum lux
+value from the sensor to be considered "presence". For instance, if you have
+a room that is usually dark at 0-5 lux, but illuminated to 100 lux when a
+(non-automated) light switch is turned on, you could set a threshold here
+of say 30 lux: then, while the light is on, "light presence" is detected,
+and when the light is off, "light presence" is cleared. Light presence can
+be used standalone or as part of the integrated occupancy sensor (below).
+
+### Integrated Occupancy Sensor (selector)
+
+The SuperSensor features a fully integrated "occupancy" sensor, which can be
+configured to provide exactly the sort of occupancy detection you may want
+for your room.
+
+There are 7 options (plus "None"/disabled), with both "detect" and "clear"
+handled separately. Occupancy is always detected when ALL of the selected
+sensors report detection, and occupancy is always cleared when ANY of the
+selected sensors stop reporting detection (logical AND in, logical OR out).
+
+   * PIR + Radar + Light
+   * PIR + Radar
+   * PIR + Light
+   * Radar + Light
+   * PIR Only
+   * Radar Only
+   * Light Only
+   * None
+
+### Room Health Sensor
+
+#### Minimum Temperature (number, 15 to 30 @ 0.5, 21 default)
+
+The lower bounds of a fully comfortable temperature; temperature values below
+this value will begin decreasing the room health score.
+
+#### Maximum Temperature (number, 15 to 30 @ 0.5, 24 default)
+
+The upper bounds of a fully comfortable temperature; temperature values above
+this value will begin decreasing the room health score.
+
+#### Temperature Penalty (number, 1 to 20 @ 1, 10 default)
+
+The penalty value per degree of temperature deviation from ideal levels, applied
+to the pre-weighting value for temperature.
+
+#### Minimum Humidity (number, 20 to 80 @ 1, 40 default)
+
+The lower bounds of a fully comfortable relative humidity level; relative
+humidity values below this value will begin decreasing the room health score.
+
+#### Maximum Humidity (number, 20 to 80 @ 1, 60 default)
+
+The upper bounds of a fully comfortable relative humidity level; relative
+humidity values above this value will begin decreasing the room health score.
+
+#### Humidity Penalty (number, 1 to 10 @ 1, 5 default)
+
+The penalty value per % of relative humidity deviation from ideal levels, applied
+to the pre-weighting value for humidity.
+
+#### VOC Weight (number, 0.0 to 1.0, 0.4 default)
+
+The weighting value of the VOC score relative to the other two for calculating
+the total room health.
+
+Note: Cannot exceed 0.4 without first decreasing one of the other weights (total max of 1.0).
+
+#### Temperature Weight (number, 0.0 to 1.0, 0.3 default)
+
+The weighting value of the Temperature score relative to the other two for
+calculating the total room health.
+
+Note: Cannot exceed 0.3 without first decreasing one of the other weights (total max of 1.0).
+
+#### Humidity Weight (number, 0.0 to 1.0, 0.3 default)
+
+The weighting value of the Humidity score relative to the other two for calculating
+the total room health.
+
+Note: Cannot exceed 0.3 without first decreasing one of the other weights (total max of 1.0).
