@@ -1166,7 +1166,7 @@ number:
                 format: "Rejected Temperature weight %.2f (total would be out of range: must be > 0.0 and ≤ 1.0)"
                 args: [ 'x' ]
   - platform: template
-    name: "Room Health Humitity Weight"
+    name: "Room Health Humidity Weight"
     id: room_health_humidity_weight_setter
     min_value: 0.00
     max_value: 1.00
