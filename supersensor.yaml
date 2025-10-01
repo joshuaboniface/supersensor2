@@ -707,10 +707,8 @@ sensor:
     unit_of_measurement: "%"
     icon: mdi:home-heart
     lambda: |-
-      float voc_index = id(sgp41_voc_index).state;
-      if (isnan(voc_index) || voc_index <= 0) {
-        voc_index = 0;
-      }
+      float voc = id(sgp41_tvoc_ppb).state;
+      if (isnan(voc) || voc < 1) voc = 1;
       float temp = id(sht45_temperature).state;
       float humidity = id(sht45_humidity).state;
 
@@ -726,20 +724,20 @@ sensor:
 
       // VOC score (0–100) mapped to categories from Chemical Pollution levels below
       float voc_score;
-      if (voc_index <= 200) {
+      if (voc <= 200) {
         voc_score = 100.0;
-      } else if (voc_index <= 400) {
+      } else if (voc <= 400) {
         // 200–400: 100 → 90
-        voc_score = 100.0 - (voc_index - 200) * (10.0 / 200.0);
-      } else if (voc_index <= 600) {
+        voc_score = 100.0 - (voc - 200) * (10.0 / 200.0);
+      } else if (voc <= 600) {
         // 400–600: 90 → 70
-        voc_score = 90.0 - (voc_index - 400) * (20.0 / 200.0);
-      } else if (voc_index <= 1500) {
+        voc_score = 90.0 - (voc - 400) * (20.0 / 200.0);
+      } else if (voc <= 1500) {
         // 600–1500: 70 → 40
-        voc_score = 70.0 - (voc_index - 600) * (30.0 / 900.0);
-      } else if (voc_index <= 3000) {
+        voc_score = 70.0 - (voc - 600) * (30.0 / 900.0);
+      } else if (voc <= 3000) {
         // 1500–3000: 40 → 0
-        voc_score = 40.0 - (voc_index - 1500) * (40.0 / 1500.0);
+        voc_score = 40.0 - (voc - 1500) * (40.0 / 1500.0);
       } else {
         voc_score = 0.0;
       }
@@ -901,12 +899,12 @@ text_sensor:
     id: sgp41_chemical_pollution
     icon: mdi:molecule
     lambda: |-
-      float voc_index = id(sgp41_voc_index).state;
-      if (voc_index < 1 || voc_index > 500) return {"Unknown"};
-      if (voc_index <= 200) return {"Excellent"};
-      else if (voc_index <= 400) return {"Good"};
-      else if (voc_index <= 600) return {"Moderate"};
-      else if (voc_index <= 1500) return {"Unhealthy"};
+      float voc = id(sgp41_tvoc_ppb).state;
+      if (isnan(voc) || voc < 1) return {"Unknown"};
+      else if (voc <= 200) return {"Excellent"};
+      else if (voc <= 400) return {"Good"};
+      else if (voc <= 600) return {"Moderate"};
+      else if (voc <= 1500) return {"Unhealthy"};
       else return {"Hazardous"};
     update_interval: 15s
 
