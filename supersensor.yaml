@@ -165,6 +165,20 @@ globals:
     initial_value: '"mww_computer"'
 
 script:
+  - id: presence_light_on
+    then:
+      if:
+        condition:
+          - switch.is_on: enable_presence_led
+          - light.is_off: output_led
+        then:
+          - light.turn_on:
+              id: output_led
+              brightness: 25%
+              red: 1
+              green: 1
+              blue: 1
+              transition_length: 1s
   - id: light_off
     then:
       if:
@@ -817,7 +831,7 @@ binary_sensor:
     device_class: occupancy
     on_state:
       then:
-        - script.execute: light_off
+        - script.execute: presence_light_on
 
   - platform: gpio
     name: "PIR GPIO"
