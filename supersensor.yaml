@@ -518,6 +518,7 @@ voice_assistant:
               red: 1
               green: 0
               blue: 0
+          - voice_assistant.stop:
         else:
           - logger.log: "Command successful!"
           - light.turn_on:
@@ -527,6 +528,10 @@ voice_assistant:
               red: 0
               green: 1
               blue: 0
+          - voice_assistant.stop:
+  on_tts_end:
+    - logger.log: "Finished STT result"
+    - voice_assistant.stop:
 
 light:
   - platform: rgb
