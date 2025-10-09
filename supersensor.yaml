@@ -413,13 +413,13 @@ i2s_audio:
       number: GPIO17 # WS
     i2s_bclk_pin:
       number: GPIO16  # SCK
-  # Dummy I2S audio pipeline for "speaker"
-  - id: i2s_dummy
-    i2s_lrclk_pin:
-      number: GPIO15 # WS
-      ignore_strapping_warning: true  # This isn't connected to anything anyways
-    i2s_bclk_pin:
-      number: GPIO14  # SCK
+#  # Dummy I2S audio pipeline for "speaker"
+#  - id: i2s_dummy
+#    i2s_lrclk_pin:
+#      number: GPIO15 # WS
+#      ignore_strapping_warning: true  # This isn't connected to anything anyways
+#    i2s_bclk_pin:
+#      number: GPIO14  # SCK
 
 microphone:
   - platform: i2s_audio
@@ -430,17 +430,17 @@ microphone:
     pdm: false
     channel: left
 
-speaker:
-  # Dummy speaker to fix home-assistant/core#142363
-  - platform: i2s_audio
-    id: dummy_speaker
-    i2s_audio_id: i2s_dummy
-    i2s_dout_pin: GPIO25
-    dac_type: external
-    bits_per_sample: 16bit
-    sample_rate: 16000
-    channel: mono #mono will have bad performance, however, we are not using the on device speaker
-    buffer_duration: 60ms
+#speaker:
+#  # Dummy speaker to fix home-assistant/core#142363
+#  - platform: i2s_audio
+#    id: dummy_speaker
+#    i2s_audio_id: i2s_dummy
+#    i2s_dout_pin: GPIO25
+#    dac_type: external
+#    bits_per_sample: 16bit
+#    sample_rate: 16000
+#    channel: mono #mono will have bad performance, however, we are not using the on device speaker
+#    buffer_duration: 60ms
 
 micro_wake_word:
   id: mww
@@ -473,7 +473,7 @@ micro_wake_word:
 voice_assistant:
   id: va
   microphone: mic
-  speaker: dummy_speaker
+#  speaker: dummy_speaker
   micro_wake_word: mww
   use_wake_word: false
   noise_suppression_level: 3
