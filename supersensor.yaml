@@ -164,39 +164,35 @@ globals:
     restore_value: yes
     initial_value: '"mww_computer"'
 
+  - id: light_is_holding
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
 script:
-  - id: presence_light_on
-    then:
-      if:
-        condition:
-          - switch.is_on: enable_presence_led
-          - light.is_off: output_led
-        then:
-          - light.turn_on:
-              id: output_led
-              brightness: 25%
-              red: 1
-              green: 1
-              blue: 1
-              transition_length: 1s
   - id: light_off
     then:
-      if:
-        condition:
-          - binary_sensor.is_on: supersensor_occupancy
-          - switch.is_on: enable_presence_led
-        then:
-          - light.turn_on:
-              id: output_led
-              brightness: 25%
-              red: 1
-              green: 1
-              blue: 1
-              transition_length: 1s
-        else:
-          - light.turn_off:
-              id: output_led
-              transition_length: 1s
+      - if:
+          condition:
+            lambda: 'return id(light_is_holding);'
+          then:
+            - stop:
+      - if:
+          condition:
+            - binary_sensor.is_on: supersensor_occupancy
+            - switch.is_on: enable_presence_led
+          then:
+            - light.turn_on:
+                id: output_led
+                brightness: 25%
+                red: 1
+                green: 1
+                blue: 1
+                transition_length: 1s
+          else:
+            - light.turn_off:
+                id: output_led
+                transition_length: 1s
 
   - id: pir_handler
     then:
@@ -556,7 +552,13 @@ light:
       - automation:
           name: hold
           sequence:
+            - globals.set:
+                id: light_is_holding
+                value: "true"
             - delay: 5s
+            - globals.set:
+                id: light_is_holding
+                value: "false"
             - script.execute: light_off
 
 output:
@@ -836,7 +838,7 @@ binary_sensor:
     device_class: occupancy
     on_state:
       then:
-        - script.execute: presence_light_on
+        - script.execute: light_off
 
   - platform: gpio
     name: "PIR GPIO"
