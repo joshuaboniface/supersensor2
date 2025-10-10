@@ -174,25 +174,24 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(light_is_holding);'
+            lambda: 'return !id(light_is_holding);'
           then:
-            - stop:
-      - if:
-          condition:
-            - binary_sensor.is_on: supersensor_occupancy
-            - switch.is_on: enable_presence_led
-          then:
-            - light.turn_on:
-                id: output_led
-                brightness: 25%
-                red: 1
-                green: 1
-                blue: 1
-                transition_length: 1s
-          else:
-            - light.turn_off:
-                id: output_led
-                transition_length: 1s
+            - if:
+                condition:
+                  - binary_sensor.is_on: supersensor_occupancy
+                  - switch.is_on: enable_presence_led
+                then:
+                  - light.turn_on:
+                      id: output_led
+                      brightness: 25%
+                      red: 1
+                      green: 1
+                      blue: 1
+                      transition_length: 1s
+                else:
+                  - light.turn_off:
+                      id: output_led
+                      transition_length: 1s
 
   - id: pir_handler
     then:
