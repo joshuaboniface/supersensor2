@@ -694,6 +694,20 @@ sensor:
       id: sht45_humidity
       accuracy_decimals: 1
       filters:
+        - lambda: |-
+            // Grab measured and corrected temperatures
+            float t_meas = id(sht45_temperature).state - id(temperature_offset);
+            float t_corr = id(sht45_temperature).state;
+            float rh_meas = x;
+
+            // Compute saturation vapor pressures (Magnus formula)
+            auto es = [](float T) { return 6.112 * exp((17.62 * T) / (243.12 + T)); };
+            float rh_corr = rh_meas * es(t_meas) / es(t_corr);
+
+            // Clamp to 0–100 %
+            if (rh_corr < 0) rh_corr = 0;
+            if (rh_corr > 100) rh_corr = 100;
+            return rh_corr + id(humidity_offset);
         - offset: !lambda return id(humidity_offset);
         - sliding_window_moving_average:
             window_size: 20
