@@ -801,8 +801,8 @@ sensor:
 
   - platform: tsl2591
     address: 0x29
-    update_interval: 1s
-    integration_time: 200ms
+    update_interval: 2s
+    integration_time: 600ms
     power_save_mode: no
     gain: auto
     device_factor: 53
